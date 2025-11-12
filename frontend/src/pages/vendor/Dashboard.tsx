@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface Genre {
@@ -45,7 +45,7 @@ function Dashboard() {
 
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-xl px-4 md:px-8 py-5 flex flex-col md:flex-row justify-between items-center shadow-xl border-b border-white/20 z-50">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 mb-4 md:mb-0">
           <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center shadow-lg">
             <span className="text-white text-xl font-bold">📚</span>
           </div>
@@ -56,7 +56,7 @@ function Dashboard() {
             <p className="text-xs md:text-sm text-gray-600 m-0 font-medium">Vendor Portal</p>
           </div>
         </div>
-        <div className="flex gap-2 md:gap-3 w-full md:w-auto justify-center md:justify-end mt-4 md:mt-0">
+        <div className="flex gap-2 md:gap-3 w-full md:w-auto justify-center md:justify-end">
           <button 
             className="px-6 py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl text-sm font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2"
             onClick={() => navigate('/vendor/dashboard')}
@@ -252,29 +252,6 @@ function Dashboard() {
         </div>
       </div>
 
-      <style>{`
-        @keyframes blob {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          33% { transform: translate(30px, -50px) scale(1.1); }
-          66% { transform: translate(-20px, 20px) scale(0.9); }
-        }
-        .animate-blob {
-          animation: blob 7s infinite;
-        }
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-        @keyframes fade-in {
-          from { opacity: 0; transform: translateY(-20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in {
-          animation: fade-in 0.6s ease-out;
-        }
-      `}</style>
     </div>
   );
 }

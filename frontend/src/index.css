@@ -1,7 +1,6 @@
-@import "tailwindcss";
-
-@source "../index.html";
-@source "./**/*.{js,jsx,ts,tsx}";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 body {
   margin: 0;
@@ -17,12 +16,29 @@ code {
     monospace;
 }
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@font-face {
-  font-family: "AntonFont";
-  src: url("/src/assets/fonts/anton.ttf") format("truetype");
+/* Custom animation delays */
+.animation-delay-2000 {
+  animation-delay: 2s;
 }
 
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+/* Ensure backdrop-blur works properly */
+@supports (backdrop-filter: blur(1px)) {
+  .backdrop-blur-xl {
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+  
+  .backdrop-blur-sm {
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+  
+  .backdrop-blur-md {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
