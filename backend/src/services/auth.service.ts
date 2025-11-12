@@ -18,6 +18,16 @@ const hashed = await bcrypt.hash(data.password, 10);
   return sanitize(user);
 }
 
+export async function login(email: string, password: string, role: Role) {
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user || user.role !== role) throw { status: 401, message: "Invalid credentials" };
+const ok = await bcrypt.compare(password, user.password);
+  if (!ok) throw { status: 401, message: "Invalid credentials" };
+const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+  return { token, user: sanitize(user) };
+}
+
+
 function sanitize(u: any) {
   const { password, ...rest } = u;
   return rest;
