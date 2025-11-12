@@ -35,70 +35,151 @@ function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-purple-600">
-      <nav className="bg-white/95 backdrop-blur-md px-4 md:px-8 py-4 flex flex-col md:flex-row justify-between items-center shadow-lg sticky top-0 z-50 gap-4">
-        <div>
-          <h1 className="text-xl md:text-2xl font-semibold text-gray-800 m-0">Colombo International Bookfair</h1>
-          <p className="text-xs md:text-sm text-gray-600 m-0">Vendor Portal</p>
+    <div className="min-h-screen bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-600 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+        <div className="absolute top-40 right-10 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-8 left-1/2 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+      </div>
+
+      {/* Navigation */}
+      <nav className="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-xl px-4 md:px-8 py-5 flex flex-col md:flex-row justify-between items-center shadow-xl border-b border-white/20 z-50">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center shadow-lg">
+            <span className="text-white text-xl font-bold">📚</span>
+          </div>
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent m-0">
+              Colombo International Bookfair
+            </h1>
+            <p className="text-xs md:text-sm text-gray-600 m-0 font-medium">Vendor Portal</p>
+          </div>
         </div>
-        <div className="flex gap-2 md:gap-4 w-full md:w-auto justify-center md:justify-end">
+        <div className="flex gap-2 md:gap-3 w-full md:w-auto justify-center md:justify-end mt-4 md:mt-0">
           <button 
-            className="px-6 py-2 border-none bg-indigo-500 text-white rounded-lg text-base cursor-pointer transition-all hover:bg-indigo-600"
+            className="px-6 py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl text-sm font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2"
             onClick={() => navigate('/vendor/dashboard')}
           >
-            Dashboard
+            <span>📊</span> Dashboard
           </button>
           <button 
-            className="px-6 py-2 border-none bg-transparent text-gray-600 rounded-lg text-base cursor-pointer transition-all hover:bg-gray-100 hover:text-gray-800"
+            className="px-6 py-2.5 bg-white/80 backdrop-blur-sm text-gray-700 rounded-xl text-sm font-semibold border border-gray-200 hover:bg-white hover:shadow-md transform hover:scale-105 transition-all duration-200 flex items-center gap-2"
             onClick={() => navigate('/vendor/reservations')}
           >
-            Reservations
+            <span>📍</span> Reservations
           </button>
         </div>
       </nav>
 
-      <div className="max-w-6xl mx-auto p-4 md:p-8">
-        <div className="text-center text-white mb-8 md:mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold m-0 mb-2 drop-shadow-lg">Welcome to Your Dashboard</h2>
-          <p className="text-base md:text-lg opacity-90">Manage your literary genres and stall reservations</p>
+      <div className="relative max-w-7xl mx-auto p-4 md:p-8 z-10 pt-24 md:pt-28">
+        {/* Welcome Header */}
+        <div className="text-center text-white mb-10 md:mb-12 animate-fade-in">
+          <div className="inline-block mb-4">
+            <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mx-auto shadow-2xl">
+              <span className="text-4xl">✨</span>
+            </div>
+          </div>
+          <h2 className="text-4xl md:text-5xl font-extrabold m-0 mb-3 drop-shadow-2xl">
+            Welcome to Your Dashboard
+          </h2>
+          <p className="text-lg md:text-xl opacity-95 font-medium">
+            Manage your literary genres and stall reservations
+          </p>
         </div>
 
-        <div className="bg-white rounded-2xl p-4 md:p-8 mb-8 shadow-2xl">
-          <h3 className="text-2xl font-semibold m-0 mb-2 text-gray-800">Literary Genres</h3>
-          <p className="text-gray-600 mb-6">
-            Add the literary genres you will be displaying/selling at the exhibition.
-          </p>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
+          <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-6 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-500 text-sm font-medium mb-1">Selected Genres</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  {genres.length}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-xl flex items-center justify-center shadow-lg">
+                <span className="text-2xl">📖</span>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-6 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-500 text-sm font-medium mb-1">Reserved Stalls</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  0
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-xl flex items-center justify-center shadow-lg">
+                <span className="text-2xl">🏪</span>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-6 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-500 text-sm font-medium mb-1">Available Stalls</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  Many
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-400 rounded-xl flex items-center justify-center shadow-lg">
+                <span className="text-2xl">✅</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
+        {/* Main Content Card */}
+        <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-6 md:p-10 mb-8 shadow-2xl border border-white/30">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
+              <span className="text-2xl">🎭</span>
+            </div>
+            <div>
+              <h3 className="text-2xl md:text-3xl font-bold text-gray-800 m-0">Literary Genres</h3>
+              <p className="text-gray-500 text-sm m-0">Add genres you'll be displaying at the exhibition</p>
+            </div>
+          </div>
+
+          {/* Input Section */}
           <div className="mb-8">
             <div className="flex flex-col md:flex-row gap-4 mb-6">
-              <input
-                type="text"
-                className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg text-base transition-colors focus:outline-none focus:border-indigo-500"
-                placeholder="Enter a genre name"
-                value={newGenre}
-                onChange={(e) => setNewGenre(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleAddGenre()}
-              />
+              <div className="flex-1 relative">
+                <input
+                  type="text"
+                  className="w-full px-5 py-4 pr-12 border-2 border-gray-200 rounded-xl text-base transition-all duration-200 focus:outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-200 bg-gray-50"
+                  placeholder="Enter a genre name..."
+                  value={newGenre}
+                  onChange={(e) => setNewGenre(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleAddGenre()}
+                />
+                <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-xl">✍️</span>
+              </div>
               <button 
-                className="px-6 md:px-8 py-3 bg-indigo-500 text-white border-none rounded-lg text-base font-semibold cursor-pointer transition-all shadow-md hover:bg-indigo-600 hover:-translate-y-0.5 hover:shadow-lg"
+                className="px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-none rounded-xl text-base font-bold cursor-pointer transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-2"
                 onClick={handleAddGenre}
               >
-                Add Genre
+                <span>➕</span> Add Genre
               </button>
             </div>
 
+            {/* Quick Select */}
             <div className="mt-6">
-              <p className="text-gray-600 mb-3 text-sm">Or select from popular genres:</p>
-              <div className="flex flex-wrap gap-2">
+              <p className="text-gray-600 mb-4 text-sm font-semibold flex items-center gap-2">
+                <span>⚡</span> Quick Select Popular Genres
+              </p>
+              <div className="flex flex-wrap gap-3">
                 {availableGenres.map((genre) => {
                   const isSelected = genres.find(g => g.name.toLowerCase() === genre.toLowerCase());
                   return (
                     <button
                       key={genre}
-                      className={`px-4 py-2 rounded-full text-sm cursor-pointer transition-all border-2 ${
+                      className={`px-5 py-2.5 rounded-full text-sm font-medium cursor-pointer transition-all duration-200 border-2 transform hover:scale-105 ${
                         isSelected
-                          ? 'bg-indigo-500 border-indigo-500 text-white'
-                          : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-500 hover:text-indigo-500'
+                          ? 'bg-gradient-to-r from-purple-500 to-pink-500 border-transparent text-white shadow-lg'
+                          : 'bg-white border-gray-200 text-gray-700 hover:border-purple-400 hover:text-purple-600 hover:shadow-md'
                       }`}
                       onClick={() => handleSelectFromList(genre)}
                     >
@@ -110,17 +191,38 @@ function Dashboard() {
             </div>
           </div>
 
+          {/* Selected Genres */}
           <div className="mt-8 pt-8 border-t-2 border-gray-100">
-            <h4 className="text-lg font-semibold m-0 mb-4 text-gray-800">Your Selected Genres ({genres.length})</h4>
+            <div className="flex items-center justify-between mb-6">
+              <h4 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                <span>📚</span> Your Selected Genres
+                <span className="px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full text-sm">
+                  {genres.length}
+                </span>
+              </h4>
+            </div>
             {genres.length === 0 ? (
-              <p className="text-gray-400 italic py-4 text-center">No genres added yet. Add genres to get started.</p>
+              <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border-2 border-dashed border-gray-300">
+                <span className="text-5xl mb-4 block">📖</span>
+                <p className="text-gray-400 font-medium text-lg">No genres added yet</p>
+                <p className="text-gray-400 text-sm mt-1">Add genres to get started with your exhibition setup</p>
+              </div>
             ) : (
-              <div className="flex flex-wrap gap-3">
-                {genres.map((genre) => (
-                  <div key={genre.id} className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-full border-2 border-gray-200">
-                    <span className="text-gray-800 font-medium">{genre.name}</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {genres.map((genre, index) => (
+                  <div 
+                    key={genre.id} 
+                    className="group flex items-center justify-between p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-2 border-purple-100 hover:border-purple-300 hover:shadow-lg transition-all duration-200 transform hover:-translate-y-1"
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-400 rounded-lg flex items-center justify-center shadow-md">
+                        <span className="text-lg">📖</span>
+                      </div>
+                      <span className="text-gray-800 font-semibold text-base">{genre.name}</span>
+                    </div>
                     <button
-                      className="bg-red-500 text-white border-none rounded-full w-6 h-6 cursor-pointer text-xl leading-none flex items-center justify-center transition-colors hover:bg-red-600"
+                      className="w-8 h-8 bg-red-500 text-white border-none rounded-lg cursor-pointer text-lg leading-none flex items-center justify-center transition-all duration-200 hover:bg-red-600 hover:scale-110 shadow-md"
                       onClick={() => handleRemoveGenre(genre.id)}
                       aria-label={`Remove ${genre.name}`}
                     >
@@ -133,21 +235,46 @@ function Dashboard() {
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-4 justify-center mt-8">
+        {/* Action Buttons */}
+        <div className="flex flex-col md:flex-row gap-4 justify-center">
           <button
-            className="px-6 md:px-8 py-3 bg-white text-indigo-500 border-2 border-indigo-500 rounded-lg text-base font-semibold cursor-pointer transition-all hover:bg-gray-50"
+            className="px-8 py-4 bg-white/90 backdrop-blur-xl text-purple-600 border-2 border-purple-300 rounded-xl text-base font-bold cursor-pointer transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-2"
             onClick={() => navigate('/vendor/reservations')}
           >
-            View Reservations
+            <span>👁️</span> View Reservations
           </button>
           <button
-            className="px-6 md:px-8 py-3 bg-indigo-500 text-white border-none rounded-lg text-base font-semibold cursor-pointer transition-all shadow-md hover:bg-indigo-600 hover:-translate-y-0.5 hover:shadow-lg"
+            className="px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-none rounded-xl text-base font-bold cursor-pointer transition-all duration-200 shadow-xl hover:shadow-2xl hover:scale-105 flex items-center justify-center gap-2"
             onClick={() => navigate('/vendor/reservations')}
           >
-            Make New Reservation
+            <span>✨</span> Make New Reservation
           </button>
         </div>
       </div>
+
+      <style>{`
+        @keyframes blob {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(30px, -50px) scale(1.1); }
+          66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+        @keyframes fade-in {
+          from { opacity: 0; transform: translateY(-20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.6s ease-out;
+        }
+      `}</style>
     </div>
   );
 }
