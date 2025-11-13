@@ -27,11 +27,59 @@ export default function RegisterPage() {
         if (error) setError(null);
     };
 
+    const validateForm = (): boolean => {
+        if (!formData.businessName.trim()) {
+            setError('Business name is required');
+            return false;
+        }
+        if (!formData.ownerName.trim()) {
+            setError('Owner/Contact person name is required');
+            return false;
+        }
+        if (!formData.email.trim()) {
+            setError('Email address is required');
+            return false;
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+            setError('Please enter a valid email address');
+            return false;
+        }
+        if (!formData.phone.trim()) {
+            setError('Phone number is required');
+            return false;
+        }
+        if (!formData.address.trim()) {
+            setError('Business address is required');
+            return false;
+        }
+        if (!formData.password) {
+            setError('Password is required');
+            return false;
+        }
+        if (formData.password.length < 6) {
+            setError('Password must be at least 6 characters long');
+            return false;
+        }
+        if (formData.password !== formData.confirmPassword) {
+            setError('Passwords do not match');
+            return false;
+        }
+        if (!formData.agreeTerms) {
+            setError('You must agree to the Terms and Conditions');
+            return false;
+        }
+        return true;
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
         setSuccess(false);
+
+        if (!validateForm()) {
+            return;
+        }
         setIsLoading(true);
 
         try {
@@ -43,6 +91,7 @@ export default function RegisterPage() {
                 phone: formData.phone.trim(),
                 address: formData.address.trim(),
             };
+
             await authAPI.registerVendor(registrationData);
             setSuccess(true);
             setError(null);
