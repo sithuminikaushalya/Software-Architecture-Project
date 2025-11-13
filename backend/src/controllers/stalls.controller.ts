@@ -6,4 +6,7 @@ export async function getAll(_req: Request, res: Response) {
   res.json({ success: true, stalls });
 }
 
-
+export async function getAvailable(_req: Request, res: Response) {
+  const stalls = await stallsService.getAvailable();
+  res.json({ success: true, stalls });
+}
