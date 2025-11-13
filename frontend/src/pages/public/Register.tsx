@@ -129,19 +129,6 @@ export default function RegisterPage() {
                     <h3 className="text-xl md:text-2xl font-bold text-[#1e2875] mb-1 md:mb-2 text-center">Create Your Account</h3>
                     <p className="text-gray-600 text-center text-sm md:text-base mb-4 md:mb-6">Register as a Vendor or Publisher</p>
 
-                    {error && (
-                        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-                            <AlertCircle className="text-red-500 flex-shrink-0 mt-0.5" size={18} />
-                            <p className="text-sm text-red-700">{error}</p>
-                        </div>
-                    )}
-                    {success && (
-                        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-start gap-2">
-                            <CheckCircle className="text-green-500 flex-shrink-0 mt-0.5" size={18} />
-                            <p className="text-sm text-green-700">Registration successful! Redirecting to login...</p>
-                        </div>
-                    )}
-
                     <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -306,6 +293,19 @@ export default function RegisterPage() {
                                 </button>
                             </label>
                         </div>
+
+                        {error && (
+                        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+                            <AlertCircle className="text-red-500 flex-shrink-0 mt-0.5" size={18} />
+                            <p className="text-sm text-red-700">{error}</p>
+                        </div>
+                    )}
+                    {success && (
+                        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-start gap-2">
+                            <CheckCircle className="text-green-500 flex-shrink-0 mt-0.5" size={18} />
+                            <p className="text-sm text-green-700">Registration successful! Redirecting to login...</p>
+                        </div>
+                    )}
 
                         <button
                             type="submit"
