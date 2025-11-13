@@ -1,7 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from './pages/vendor/Dashboard';
 import Reservations from './pages/vendor/Reservations';
-import MapBuilder from './pages/admin/MapBuilder';
 import Register from './pages/public/Register';
 import Login from './pages/public/Login';
 
