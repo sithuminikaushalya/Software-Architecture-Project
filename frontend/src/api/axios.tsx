@@ -54,11 +54,13 @@ export const authAPI = {
         }
     },
 
-        login: async (email: string, password: string) => {
+    login: async (email: string, password: string, userType: 'vendor' | 'employee') => {
         try {
-        const response = await api.post('/auth/login', { email, password });
+        const endpoint = userType === 'employee' ? '/auth/employee/login' : '/auth/login';
+        const response = await api.post(endpoint, { email, password });
         if (response.data.token) {
             sessionStorage.setItem('authToken', response.data.token);
+            sessionStorage.setItem('userRole', response.data.user?.role);
         }
         return response.data;
         } catch (error: any) {
