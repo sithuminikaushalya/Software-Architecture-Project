@@ -1,16 +1,73 @@
 import { useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { authAPI } from '../../api/axios';
+import type { ApiError } from '../../types/UserType';
 
 export default function LoginPage() {
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
     const [userType, setUserType] = useState<'vendor' | 'employee'>('vendor');
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState(false);
+    
     const [formData, setFormData] = useState({
         email: '',
         password: '',
         rememberMe: false
     });
+
+    const updateField = (field: string, value: any) => {
+        setFormData({ ...formData, [field]: value });
+        if (error) setError(null);
+    };
+
+    const validateForm = (): boolean => {
+        if (!formData.email.trim()) {
+            setError('Email address is required');
+            return false;
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+            setError('Please enter a valid email address');
+            return false;
+        }
+        if (!formData.password) {
+            setError('Password is required');
+            return false;
+        }
+        return true;
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError(null);
+        setSuccess(false);
+
+        if (!validateForm()) {
+            return;
+        }
+        setIsLoading(true);
+        try {
+            await authAPI.login(formData.email.trim(), formData.password);
+            setSuccess(true);
+            setTimeout(() => {
+                if (userType === 'vendor') {
+                    navigate('/vendor/dashboard');
+                } else {
+                    navigate('/employee/dashboard');
+                }
+            }, 1000);
+            
+        } catch (err: any) {
+            const apiError = err as ApiError;
+            setError(apiError.message || 'Login failed. Please try again.');
+            setSuccess(false);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1e2875] via-[#3245a5] to-[#505ec4] p-4">
@@ -32,9 +89,27 @@ export default function LoginPage() {
                 <div className="bg-white rounded-xl md:rounded-2xl shadow-xl md:shadow-2xl p-6 md:p-8">
                     <h3 className="text-xl md:text-2xl font-bold text-[#1e2875] mb-4 md:mb-6 text-center">Welcome Back</h3>
 
+                    {/* Error Message */}
+                    {error && (
+                        <div className="mb-4 p-3 md:p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2 md:gap-3">
+                            <AlertCircle className="text-red-500 flex-shrink-0 mt-0.5" size={20} />
+                            <p className="text-sm md:text-base text-red-700 font-medium">{error}</p>
+                        </div>
+                    )}
+
+                    {/* Success Message */}
+                    {success && (
+                        <div className="mb-4 p-3 md:p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-2 md:gap-3">
+                            <CheckCircle className="text-green-500 flex-shrink-0 mt-0.5" size={20} />
+                            <p className="text-sm md:text-base text-green-700 font-medium">Login successful! Redirecting...</p>
+                        </div>
+                    )}
+
                     <div className="flex gap-1 md:gap-2 mb-4 md:mb-6 bg-gray-100 rounded-lg p-1">
                         <button
+                            type="button"
                             onClick={() => setUserType('vendor')}
+                            disabled={isLoading}
                             className={`flex-1 py-2 px-3 md:px-4 rounded-md text-sm md:text-base font-medium transition-all ${
                                 userType === 'vendor'
                                 ? 'bg-gradient-to-r from-[#4dd9e8] to-[#2ab7c9] text-white shadow-md'
@@ -44,7 +119,9 @@ export default function LoginPage() {
                             Vendor/Publisher
                         </button>
                         <button
+                            type="button"
                             onClick={() => setUserType('employee')}
+                            disabled={isLoading}
                             className={`flex-1 py-2 px-3 md:px-4 rounded-md text-sm md:text-base font-medium transition-all ${
                                 userType === 'employee'
                                 ? 'bg-gradient-to-r from-[#4dd9e8] to-[#2ab7c9] text-white shadow-md'
@@ -55,7 +132,7 @@ export default function LoginPage() {
                         </button>
                     </div>
 
-                    <div className="space-y-4 md:space-y-5">
+                    <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Email Address
@@ -63,9 +140,10 @@ export default function LoginPage() {
                             <input
                                 type="email"
                                 value={formData.email}
-                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                onChange={(e) => updateField('email', e.target.value)}
                                 className="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2ab7c9] focus:border-transparent outline-none transition-all text-sm md:text-base"
                                 placeholder="Enter your email"
+                                disabled={isLoading}
                             />
                         </div>
 
@@ -77,13 +155,16 @@ export default function LoginPage() {
                                 <input
                                     type={showPassword ? 'text' : 'password'}
                                     value={formData.password}
-                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                    onChange={(e) => updateField('password', e.target.value)}
                                     className="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2ab7c9] focus:border-transparent outline-none transition-all pr-10 md:pr-12 text-sm md:text-base"
                                     placeholder="Enter your password"
+                                    disabled={isLoading}
                                 />
                                 <button
+                                    type="button"
                                     onClick={() => setShowPassword(!showPassword)}
                                     className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                    disabled={isLoading}
                                 >
                                     {showPassword ? <EyeOff size={18} className="md:w-5" /> : <Eye size={18} className="md:w-5" />}
                                 </button>
@@ -95,29 +176,42 @@ export default function LoginPage() {
                                 <input
                                     type="checkbox"
                                     checked={formData.rememberMe}
-                                    onChange={(e) => setFormData({ ...formData, rememberMe: e.target.checked })}
+                                    onChange={(e) => updateField('rememberMe', e.target.checked)}
                                     className="w-3 h-3 md:w-4 md:h-4 text-[#2ab7c9] border-gray-300 rounded focus:ring-[#2ab7c9]"
+                                    disabled={isLoading}
                                 />
                                 <span className="ml-2 text-gray-600">Remember me</span>
                             </label>
-                            <button className="text-[#2ab7c9] hover:text-[#1e2875] font-medium">
+                            <button 
+                                type="button"
+                                className="text-[#2ab7c9] hover:text-[#1e2875] font-medium"
+                                disabled={isLoading}
+                            >
                                 Forgot password?
                             </button>
                         </div>
+
                         <button
-                            className="w-full bg-gradient-to-r from-[#4dd9e8] to-[#2ab7c9] text-white py-2 md:py-3 rounded-lg font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 text-sm md:text-base"
+                            type="submit"
+                            disabled={isLoading}
+                            className="w-full bg-gradient-to-r from-[#4dd9e8] to-[#2ab7c9] text-white py-2 md:py-3 rounded-lg font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                         >
-                            Sign In
+                            {isLoading ? 'Signing In...' : 'Sign In'}
                         </button>
-                    </div>
+                    </form>
+
                     <div className="mt-4 md:mt-6 text-center text-xs md:text-sm text-gray-600">
                         Don't have an account?{' '}
-                        <button onClick={() => navigate('/register')}
-                        className="text-[#2ab7c9] hover:text-[#1e2875] font-semibold">
-                        Register here
+                        <button 
+                            onClick={() => navigate('/register')}
+                            className="text-[#2ab7c9] hover:text-[#1e2875] font-semibold"
+                            disabled={isLoading}
+                        >
+                            Register here
                         </button>
                     </div>
                 </div>
+
                 <p className="text-center text-white text-xs md:text-sm mt-4 md:mt-6 opacity-80">
                     © 2024 Sri Lanka Book Publishers' Association
                 </p>

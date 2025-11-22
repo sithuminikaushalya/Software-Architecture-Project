@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Eye, EyeOff, Building2, User, Mail, Phone, MapPin, AlertCircle, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { authAPI, type ApiError } from '../../api/axios';
+import { authAPI} from '../../api/axios';
+import type { ApiError } from '../../types/UserType';
 
 export default function RegisterPage() {
     const navigate = useNavigate();
@@ -57,10 +58,16 @@ export default function RegisterPage() {
             setError('Password is required');
             return false;
         }
-        if (formData.password.length < 6) {
-            setError('Password must be at least 6 characters long');
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/;
+        if (formData.password.length < 8) {
+            setError('Password must be at least 8 characters long');
             return false;
         }
+        if (!passwordRegex.test(formData.password)) {
+            setError('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)');
+            return false;
+        }
+        
         if (formData.password !== formData.confirmPassword) {
             setError('Passwords do not match');
             return false;
