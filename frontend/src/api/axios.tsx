@@ -41,10 +41,14 @@ export const authAPI = {
         return response.data;
         } catch (error: any) {
         if (error.response) {
-            throw {
+            const backendMessage = error.response.data?.message || 
+                                    error.response.data?.error ||
+                                    'Registration failed';
+        throw {
             status: error.response.status,
-            message: error.response.data?.message || 'Registration failed',
-            } as ApiError;
+            message: backendMessage,
+            details: error.response.data?.errors
+        } as ApiError;
         }
         throw {
             status: 500,
