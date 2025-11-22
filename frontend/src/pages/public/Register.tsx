@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Eye, EyeOff, Building2, User, Mail, Phone, MapPin, AlertCircle, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { authAPI, type ApiError } from '../../api/axios';
+import { authAPI} from '../../api/axios';
+import type { ApiError } from '../../types/UserType';
 
 export default function RegisterPage() {
     const navigate = useNavigate();
