@@ -50,7 +50,7 @@ export default function LoginPage() {
         }
         setIsLoading(true);
         try {
-            await authAPI.login(formData.email.trim(), formData.password);
+            await authAPI.login(formData.email.trim(), formData.password, userType);
             setSuccess(true);
             setTimeout(() => {
                 if (userType === 'vendor') {
