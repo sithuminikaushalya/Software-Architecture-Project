@@ -1,11 +1,13 @@
 import { Routes, Route } from 'react-router-dom';
-import Dashboard from './pages/vendor/Dashboard';
-import Reservations from './pages/vendor/Reservations';
-import AccountSettings from './pages/vendor/AccountSettings';
 import Register from './pages/public/Register';
 import Login from './pages/public/Login';
 import EmployeeDashboard from './pages/employee/Dashboard';
 import EmployeeReservations from './pages/employee/Reservations';
+import ReserveStalls from './pages/vendor/ReserveStalls';
+import MyReservations from './pages/vendor/MyReservations';
+import VendorLayout from './layout/VendorLayout';
+import VendorProfile from './pages/vendor/Profile';
+import Dashboard from './pages/employee/Dashboard';
 import EmployeeProfile from './pages/employee/Profile';
 
 function App() {
@@ -14,9 +16,12 @@ function App() {
       <Routes> 
         <Route path="/" element={<Login/>} />
         <Route path="/register" element={<Register/>}/>
-        <Route path="/vendor/dashboard" element={<Dashboard />} />
-        <Route path="/vendor/reservations" element={<Reservations />} />
-        <Route path="/vendor/settings" element={<AccountSettings />} />
+        
+        <Route path="/vendor/dashboard" element={<VendorLayout><Dashboard/></VendorLayout>}/>
+        <Route path="/vendor/reserve-stalls" element={<VendorLayout><ReserveStalls/></VendorLayout>}/>
+        <Route path="/vendor/my-reservations" element={<VendorLayout><MyReservations/></VendorLayout>}/>
+        <Route path="/vendor/profile" element={<VendorLayout><VendorProfile/></VendorLayout>}/>
+
         <Route path="/employee/dashboard" element={<EmployeeDashboard/>} />
         <Route path="/employee/reservations" element={<EmployeeReservations/>} />
         <Route path="/employee/profile" element={<EmployeeProfile/>} />

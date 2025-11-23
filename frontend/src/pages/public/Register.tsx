@@ -116,7 +116,7 @@ export default function RegisterPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1e2875] via-[#3245a5] to-[#505ec4] p-4 py-6 md:py-8">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0e1a4f] via-[#123c8c] to-[#0f9ed6] p-4 py-6 md:py-8">
             <div className="w-full max-w-2xl">
                 <div className="text-center mb-6 md:mb-8">
                     <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-[#4dd9e8] to-[#2ab7c9] rounded-full mb-3 md:mb-4 shadow-lg">
@@ -334,10 +334,6 @@ export default function RegisterPage() {
                         </button>
                     </div>
                 </div>
-
-                <p className="text-center text-white text-xs md:text-sm mt-4 md:mt-6 opacity-80">
-                    © 2024 Sri Lanka Book Publishers' Association
-                </p>
             </div>
         </div>
     );

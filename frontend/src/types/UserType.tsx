@@ -21,7 +21,24 @@ export interface RegisterVendorData {
     status: number;
     message: string;
     }
-    export interface User {
+
+export interface UserProfile {
+    id: number;
+    email: string;
+    businessName: string;
+    contactPerson: string;
+    phone: string;
+    address: string;
+    role: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface UserProfileResponse {
+    success: boolean;
+    user: UserProfile;
+    
+export interface User {
   id: number;
   email: string;
   businessName: string;
