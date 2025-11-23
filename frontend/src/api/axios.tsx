@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { ApiError, RegisterResponse, RegisterVendorData } from '../types/UserType';
+import type { ApiError, RegisterResponse, RegisterVendorData, UserProfile, UserProfileResponse } from '../types/UserType';
 
 const API_BASE_URL = "http://localhost:4000/api";
 
@@ -77,5 +77,45 @@ export const authAPI = {
         }
     },
 };
+
+export const userAPI = {
+    getProfile: async (): Promise<UserProfile> => {
+        try {
+        const response = await api.get<UserProfileResponse>('/users/profile');
+        return response.data.user;
+        } catch (error: any) {
+        if (error.response) {
+            throw {
+            status: error.response.status,
+            message: error.response.data?.message || 'Failed to fetch profile',
+            } as ApiError;
+        }
+        throw {
+            status: 500,
+            message: 'Network error. Please check your connection.',
+        } as ApiError;
+        }
+    },
+
+    updateProfile: async (data: Partial<UserProfile>): Promise<UserProfile> => {
+        try {
+        const response = await api.put<UserProfileResponse>('/users/profile', data);
+        return response.data.user;
+        } catch (error: any) {
+        if (error.response) {
+            throw {
+            status: error.response.status,
+            message: error.response.data?.message || 'Failed to update profile',
+            } as ApiError;
+        }
+        throw {
+            status: 500,
+            message: 'Network error. Please check your connection.',
+        } as ApiError;
+        }
+    },
+};
+
+
 
 export default api;
