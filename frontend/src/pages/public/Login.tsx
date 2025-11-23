@@ -54,7 +54,7 @@ export default function LoginPage() {
             setSuccess(true);
             setTimeout(() => {
                 if (userType === 'vendor') {
-                    navigate('/vendor/dashboardv');
+                    navigate('/vendor/dashboard');
                 } else {
                     navigate('/employee/dashboard');
                 }

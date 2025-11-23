@@ -17,7 +17,6 @@ export default function VendorLayout({ children }: VendorLayoutProps) {
     const [loading, setLoading] = useState(true);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    // Fetch user profile on mount
     useEffect(() => {
         const fetchUserProfile = async () => {
         try {
@@ -33,7 +32,6 @@ export default function VendorLayout({ children }: VendorLayoutProps) {
         fetchUserProfile();
     }, []);
 
-    // Close dropdown when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
         if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -67,7 +65,7 @@ export default function VendorLayout({ children }: VendorLayoutProps) {
 
     const navItems = [
         {
-        path: "/vendor/dashboardv",
+        path: "/vendor/dashboard",
         label: "Dashboard",
         icon: LayoutDashboard
         },
