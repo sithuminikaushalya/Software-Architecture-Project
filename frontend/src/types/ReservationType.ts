@@ -2,6 +2,8 @@ import type { Stall } from "./StallType";
 import type { User } from "./UserType";
 
 export interface Reservation {
+  reservationDate: string;
+  literaryGenres: never[];
   id: number;
   userId: number;
   stallId: number;
@@ -10,7 +12,7 @@ export interface Reservation {
   createdAt: string;
   updatedAt?: string;
   stall?: Stall;
-  user?: Pick<User, "id" | "businessName" | "email">;
+  user?: User;
 }
 
 export interface ReservationsResponse {

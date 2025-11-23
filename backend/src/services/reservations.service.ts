@@ -64,7 +64,7 @@ export function getForUser(userId: number) {
 
 export function getAll() {
   return prisma.reservation.findMany({
-    include: { stall: true, user: { select: { id: true, businessName: true, email: true } } },
+    include: { stall: true, user: { select: { id: true, businessName: true, email: true,phone:true,contactPerson:true } } },
     orderBy: { id: "desc" }
   });
 }

@@ -6,6 +6,7 @@ import Register from './pages/public/Register';
 import Login from './pages/public/Login';
 import EmployeeDashboard from './pages/employee/Dashboard';
 import EmployeeReservations from './pages/employee/Reservations';
+import EmployeeProfile from './pages/employee/Profile';
 
 function App() {
   return (
@@ -18,6 +19,8 @@ function App() {
         <Route path="/vendor/settings" element={<AccountSettings />} />
         <Route path="/employee/dashboard" element={<EmployeeDashboard/>} />
         <Route path="/employee/reservations" element={<EmployeeReservations/>} />
+        <Route path="/employee/profile" element={<EmployeeProfile/>} />
+       
       </Routes>
     </div>
   );
