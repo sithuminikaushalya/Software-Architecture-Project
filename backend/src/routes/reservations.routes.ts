@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authRequired } from "../middleware/auth";
 import { body, param } from "express-validator";
-import { createReservation, getUserReservations, getAllReservations, cancelReservation} from "../controllers/reservations.controller";
+import { createReservation, getUserReservations, getAllReservations, cancelReservation, updateGenres} from "../controllers/reservations.controller";
 import { validate } from "../middleware/validate";
 import { employeeOnly } from "../middleware/roles";
 
@@ -32,6 +32,15 @@ r.delete("/:id",
   validate,
   cancelReservation
 );
+
+r.patch("/:id/genres",
+  authRequired,
+  param("id").isInt(),
+  body("genres").isArray({ min: 0 }),
+  validate,
+  updateGenres
+);
+
 
 
 

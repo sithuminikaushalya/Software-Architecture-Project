@@ -81,4 +81,11 @@ await prisma.$transaction(async (tx) => {
   return true;
 }
 
+export async function setGenres(id: number, genres: string[]) {
+  const existing = await prisma.reservation.findUnique({ where: { id } });
+  if (!existing) throw { status: 404, message: "Reservation not found" };
+  return prisma.reservation.update({ where: { id }, data: { literaryGenres: genres } });
+}
+
+
 
