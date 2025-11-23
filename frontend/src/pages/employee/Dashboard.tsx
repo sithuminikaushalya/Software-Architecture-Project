@@ -19,7 +19,6 @@ import type { DashboardStats } from "../../types/DashboardStats";
 import type { Reservation } from "../../types/ReservationType";
 import type { Stall } from "../../types/StallType";
 
-
 export default function EmployeeDashboard() {
   const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats>({
@@ -36,13 +35,35 @@ export default function EmployeeDashboard() {
         setLoading(true);
         setError(null);
         
-        // Fetch stalls first
-        await fetchStallData();
-        
-        // Then fetch reservations
-        await fetchReservationData();
+        // Fetch both stalls and reservations
+        const [stallsRes, reservationsRes] = await Promise.all([
+          stallsAPI.getAll(),
+          reservationsAPI.getAll()
+        ]);
+
+        const stalls = stallsRes.stalls;
+        const reservations = reservationsRes.reservations;
+        const reserved = stalls.filter((s: Stall) => !s.isAvailable);
+        const uniqueVendors = new Set(
+          reservations
+            .filter((r: Reservation) => r.status === "ACTIVE")
+            .map((r: Reservation) => r.userId)
+        );
+
+        setStats({
+          total: stalls.length,
+          reserved: reserved.length,
+          available: stalls.filter((s: Stall) => s.isAvailable).length,
+          totalVendors: uniqueVendors.size,
+          smallReserved: reserved.filter((s: Stall) => s.size === "SMALL").length,
+          mediumReserved: reserved.filter((s: Stall) => s.size === "MEDIUM").length,
+          largeReserved: reserved.filter((s: Stall) => s.size === "LARGE").length,
+        });
+
+        setRecentReservations(reservations.slice(0, 5));
       } catch (err: any) {
         setError(err.message || "Failed to load dashboard data");
+        console.error("Dashboard error:", err);
       } finally {
         setLoading(false);
       }
@@ -50,43 +71,6 @@ export default function EmployeeDashboard() {
     
     loadData();
   }, []);
-
-  const fetchStallData = async () => {
-    try {
-      const stallsRes = await stallsAPI.getAll();
-      const stalls = stallsRes.stalls;
-      const reserved = stalls.filter((s: Stall) => !s.isAvailable);
-
-      setStats(prevStats => ({
-        ...prevStats,
-        total: stalls.length,
-        reserved: reserved.length,
-        available: stalls.filter((s: Stall) => s.isAvailable).length,
-        smallReserved: reserved.filter((s: Stall) => s.size === "SMALL").length,
-        mediumReserved: reserved.filter((s: Stall) => s.size === "MEDIUM").length,
-        largeReserved: reserved.filter((s: Stall) => s.size === "LARGE").length,
-      }));
-    } catch (err: any) {
-      throw new Error(err.message || "Failed to load stall data");
-    }
-  };
-
-  const fetchReservationData = async () => {
-    try {
-      const reservationsRes = await reservationsAPI.getAll();
-      const reservations = reservationsRes.reservations;
-      const uniqueVendors = new Set(reservations.map((r: Reservation) => r.userId));
-
-      setStats(prevStats => ({
-        ...prevStats,
-        totalVendors: uniqueVendors.size,
-      }));
-
-      setRecentReservations(reservations.slice(0, 5));
-    } catch (err: any) {
-      throw new Error(err.message || "Failed to load reservation data");
-    }
-  };
 
   const occupancyRate = stats.total > 0 ? Math.round((stats.reserved / stats.total) * 100) : 0;
 
@@ -167,7 +151,7 @@ export default function EmployeeDashboard() {
           <StatCard title="Total Stalls" value={stats.total} icon={LayoutGrid} color="blue" />
           <StatCard title="Reserved Stalls" value={stats.reserved} icon={CheckCircle} color="green" />
           <StatCard title="Available Stalls" value={stats.available} icon={Store} color="orange" />
-          <StatCard title="Total Vendors" value={stats.totalVendors} icon={Users} color="purple" />
+          <StatCard title="Active Vendors" value={stats.totalVendors} icon={Users} color="purple" />
         </div>
 
         {/* Occupancy */}
@@ -226,7 +210,7 @@ export default function EmployeeDashboard() {
             <div className="space-y-4">
               {[
                 { label: "Active Reservations", value: recentReservations.filter(r => r.status === "ACTIVE").length },
-                { label: "Recent Bookings (5)", value: recentReservations.length },
+                { label: "Recent Bookings", value: recentReservations.length },
                 { label: "Occupancy Rate", value: `${occupancyRate}%` },
               ].map((item, i) => (
                 <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
