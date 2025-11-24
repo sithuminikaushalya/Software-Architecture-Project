@@ -1,325 +1,249 @@
-// pages/vendor/Profile.tsx
-import { useEffect, useState } from "react";
-import {
-  User,
-  Mail,
-  Phone,
-  MapPin,
-  Building2,
-  Edit2,
-  Save,
-  X,
-  Loader2,
-  AlertCircle,
-  CheckCircle,
-} from "lucide-react";
-import { usersAPI } from "../../api/axios";
-import type { User as UserType } from "../../types/UserType";
+// frontend/src/pages/vendor/Profile.tsx
+import { useState, useEffect } from 'react';
+import { User, Mail, Phone, MapPin, Building2, QrCode, Download } from 'lucide-react';
+
+interface UserProfile {
+  id: number;
+  email: string;
+  businessName: string;
+  contactPerson: string;
+  phone: string;
+  address: string;
+  role: string;
+  createdAt: string;
+}
+
+interface Reservation {
+  id: number;
+  stallName: string;
+  qrCodeUrl?: string;
+}
 
 export default function VendorProfile() {
-  const [profile, setProfile] = useState<UserType | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-
-  const [formData, setFormData] = useState({
-    businessName: "",
-    contactPerson: "",
-    phone: "",
-    address: "",
-  });
 
   useEffect(() => {
-    loadProfile();
+    const fetchProfileData = async () => {
+      try {
+        const token = sessionStorage.getItem('authToken');
+        
+        // Fetch user profile
+        const profileResponse = await fetch('http://localhost:4000/api/auth/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (profileResponse.ok) {
+          const profileData = await profileResponse.json();
+          setUser(profileData.user);
+        }
+
+        // Fetch reservations for QR codes
+        const reservationsResponse = await fetch('http://localhost:4000/api/reservations/user/current', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (reservationsResponse.ok) {
+          const reservationsData = await reservationsResponse.json();
+          setReservations(reservationsData.reservations || []);
+        }
+      } catch (error) {
+        console.error('Error fetching profile data:', error);
+        // Mock data for demo
+        setUser({
+          id: 1,
+          email: 'publisher@example.com',
+          businessName: 'Galaxy Books',
+          contactPerson: 'Ishara',
+          phone: '077-0000000',
+          address: 'Colombo 7',
+          role: 'VENDOR',
+          createdAt: '2024-01-01T00:00:00Z'
+        });
+        setReservations([
+          { id: 1, stallName: 'Stall A', qrCodeUrl: '/qr-sample.png' },
+          { id: 2, stallName: 'Stall B', qrCodeUrl: '/qr-sample.png' }
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfileData();
   }, []);
-
-  const loadProfile = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await usersAPI.getProfile();
-      setProfile(response.user);
-      setFormData({
-        businessName: response.user.businessName || "",
-        contactPerson: response.user.contactPerson || "",
-        phone: response.user.phone || "",
-        address: response.user.address || "",
-      });
-    } catch (err: any) {
-      setError(err.message || "Failed to load profile");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSave = async () => {
-    try {
-      setIsSaving(true);
-      setError(null);
-      const response = await usersAPI.updateProfile(formData);
-      setProfile(response.user);
-      setIsEditing(false);
-      setSuccess("Profile updated successfully!");
-      setTimeout(() => setSuccess(null), 3000);
-    } catch (err: any) {
-      setError(err.message || "Failed to update profile");
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleCancel = () => {
-    setIsEditing(false);
-    setError(null);
-    setSuccess(null);
-    if (profile) {
-      setFormData({
-        businessName: profile.businessName || "",
-        contactPerson: profile.contactPerson || "",
-        phone: profile.phone || "",
-        address: profile.address || "",
-      });
-    }
-  };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
-          <p className="font-medium text-gray-600">Loading profile...</p>
-        </div>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2ab7c9]"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-500">Failed to load profile data</p>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto space-y-6 max-w-7xl">
-      {/* Alerts - Only show when NOT editing */}
-      {!isEditing && success && (
-        <div className="flex items-center gap-3 p-4 mb-6 border border-green-200 rounded-lg bg-green-50">
-          <CheckCircle className="flex-shrink-0 w-5 h-5 text-green-600" />
-          <p className="text-sm font-medium text-green-800">{success}</p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Profile</h1>
+          <p className="text-gray-600 mt-1">Manage your account information and QR codes</p>
         </div>
-      )}
+      </div>
 
-      {!isEditing && error && (
-        <div className="flex items-center gap-3 p-4 mb-6 border border-red-200 rounded-lg bg-red-50">
-          <AlertCircle className="flex-shrink-0 w-5 h-5 text-red-600" />
-          <p className="text-sm font-medium text-red-800">{error}</p>
-        </div>
-      )}
-
-      {/* Profile Card */}
-      {profile && (
-        <div className="overflow-hidden bg-white border border-gray-200 shadow-sm rounded-xl">
-          {/* Header Section */}
-          <div className="bg-gradient-to-br from-[#1a2f8d] via-[#1f52b1] to-[#0d91c5] rounded-xl p-8 text-white shadow-[0_0_20px_rgba(77,217,232,0.4)]">
-            <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm">
-                  <User className="w-8 h-8 text-white" />
-                </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Profile Information */}
+        <div className="lg:col-span-2">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <User className="w-5 h-5 text-[#2ab7c9]" />
+                Business Information
+              </h2>
+            </div>
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h2 className="text-2xl font-bold text-white">{profile.businessName || "Vendor"}</h2>
-                  <p className="mt-1 text-sm text-blue-100">{profile.role}</p>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <Building2 className="w-4 h-4 inline mr-2" />
+                    Business Name
+                  </label>
+                  <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <p className="text-gray-900">{user.businessName}</p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <User className="w-4 h-4 inline mr-2" />
+                    Contact Person
+                  </label>
+                  <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <p className="text-gray-900">{user.contactPerson}</p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <Mail className="w-4 h-4 inline mr-2" />
+                    Email Address
+                  </label>
+                  <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <p className="text-gray-900">{user.email}</p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <Phone className="w-4 h-4 inline mr-2" />
+                    Phone Number
+                  </label>
+                  <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <p className="text-gray-900">{user.phone}</p>
+                  </div>
                 </div>
               </div>
-              {!isEditing && (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white text-blue-600 font-semibold rounded-lg hover:bg-blue-50 transition-colors"
-                >
-                  <Edit2 className="w-4 h-4" />
-                  Edit
-                </button>
-              )}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <MapPin className="w-4 h-4 inline mr-2" />
+                  Business Address
+                </label>
+                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <p className="text-gray-900">{user.address}</p>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-gray-200">
+                <p className="text-sm text-gray-500">
+                  Member since {new Date(user.createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </p>
+              </div>
             </div>
           </div>
+        </div>
 
-          {/* Content Section */}
-          <div className="p-6 space-y-8 sm:p-8">
-            {/* Account Information */}
-            <div>
-              <h3 className="flex items-center gap-2 mb-6 text-lg font-semibold text-gray-900">
-                <Mail className="w-5 h-5 text-blue-600" />
-                Account Information
-              </h3>
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="block mb-2 text-sm font-medium text-gray-700">Email Address</label>
-                    <input
-                      type="email"
-                      value={profile.email}
-                      disabled
-                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm"
-                    />
-                    <p className="mt-1 text-xs text-gray-500">Cannot be changed</p>
-                  </div>
-
-                  <div>
-                    <label className="block mb-2 text-sm font-medium text-gray-700">Role</label>
-                    <input
-                      type="text"
-                      value={profile.role}
-                      disabled
-                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm"
-                    />
-                    <p className="mt-1 text-xs text-gray-500">System assigned</p>
-                  </div>
-                </div>
-              </div>
+        {/* QR Codes */}
+        <div className="space-y-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <QrCode className="w-5 h-5 text-[#2ab7c9]" />
+                Entry QR Codes
+              </h2>
             </div>
-
-            <hr className="border-gray-200" />
-
-            {/* Business Information */}
-            <div>
-              <h3 className="flex items-center gap-2 mb-6 text-lg font-semibold text-gray-900">
-                <Building2 className="w-5 h-5 text-blue-600" />
-                Business Information
-              </h3>
-
-              {isEditing ? (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block mb-2 text-sm font-medium text-gray-700">Business Name</label>
-                    <input
-                      type="text"
-                      name="businessName"
-                      value={formData.businessName}
-                      onChange={handleInputChange}
-                      placeholder="Enter business name"
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block mb-2 text-sm font-medium text-gray-700">Contact Person</label>
-                    <input
-                      type="text"
-                      name="contactPerson"
-                      value={formData.contactPerson}
-                      onChange={handleInputChange}
-                      placeholder="Enter contact person name"
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block mb-2 text-sm font-medium text-gray-700">Phone Number</label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      placeholder="Enter phone number"
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block mb-2 text-sm font-medium text-gray-700">Address</label>
-                    <textarea
-                      name="address"
-                      value={formData.address}
-                      onChange={handleInputChange}
-                      placeholder="Enter complete address"
-                      rows={3}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                    />
-                  </div>
-
-                  {/* Alerts in Edit Mode - Show above buttons */}
-                  {success && (
-                    <div className="flex items-center gap-3 p-4 border border-green-200 rounded-lg bg-green-50">
-                      <CheckCircle className="flex-shrink-0 w-5 h-5 text-green-600" />
-                      <p className="text-sm font-medium text-green-800">{success}</p>
-                    </div>
-                  )}
-
-                  {error && (
-                    <div className="flex items-center gap-3 p-4 border border-red-200 rounded-lg bg-red-50">
-                      <AlertCircle className="flex-shrink-0 w-5 h-5 text-red-600" />
-                      <p className="text-sm font-medium text-red-800">{error}</p>
-                    </div>
-                  )}
-
-                  <div className="flex gap-3 pt-4">
-                    <button
-                      onClick={handleSave}
-                      disabled={isSaving}
-                      className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                    >
-                      {isSaving ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          Saving...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="w-4 h-4" />
-                          Save Changes
-                        </>
-                      )}
-                    </button>
-                    <button
-                      onClick={handleCancel}
-                      disabled={isSaving}
-                      className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                    >
-                      <X className="w-4 h-4" />
-                      Cancel
-                    </button>
-                  </div>
+            <div className="p-6">
+              {reservations.filter(r => r.qrCodeUrl).length === 0 ? (
+                <div className="text-center py-8">
+                  <QrCode className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 text-sm">No QR codes available yet</p>
+                  <p className="text-gray-400 text-xs mt-1">
+                    QR codes will be generated after stall reservations
+                  </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="block mb-2 text-sm font-medium text-gray-600">Business Name</label>
-                    <p className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm">
-                      {profile.businessName || "Not provided"}
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="block mb-2 text-sm font-medium text-gray-600">Contact Person</label>
-                    <p className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm">
-                      {profile.contactPerson || "Not provided"}
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="block mb-2 text-sm font-medium text-gray-600">Phone Number</label>
-                    <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg">
-                      <Phone className="flex-shrink-0 w-4 h-4 text-gray-400" />
-                      <p className="text-sm text-gray-900">{profile.phone || "Not provided"}</p>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block mb-2 text-sm font-medium text-gray-600">Address</label>
-                    <div className="flex items-start gap-2 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg">
-                      <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
-                      <p className="text-sm text-gray-900">{profile.address || "Not provided"}</p>
-                    </div>
-                  </div>
+                <div className="space-y-4">
+                  {reservations
+                    .filter(reservation => reservation.qrCodeUrl)
+                    .map((reservation) => (
+                      <div
+                        key={reservation.id}
+                        className="border border-gray-200 rounded-lg p-4 text-center"
+                      >
+                        <div className="bg-gray-100 rounded-lg p-4 mb-3">
+                          <div className="w-32 h-32 mx-auto bg-white flex items-center justify-center rounded">
+                            <span className="text-gray-400 text-xs">QR Code</span>
+                            {/* In real app: <img src={reservation.qrCodeUrl} alt={`QR for ${reservation.stallName}`} /> */}
+                          </div>
+                        </div>
+                        <p className="font-medium text-gray-900 mb-2">
+                          {reservation.stallName}
+                        </p>
+                        <button
+                          onClick={() => window.open(reservation.qrCodeUrl, '_blank')}
+                          className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-[#4dd9e8] to-[#2ab7c9] text-white rounded-lg font-medium hover:shadow-lg transition-all text-sm"
+                        >
+                          <Download className="w-4 h-4" />
+                          Download QR
+                        </button>
+                      </div>
+                    ))}
                 </div>
               )}
             </div>
+          </div>
 
-            <hr className="border-gray-200" />
+          {/* Important Notes */}
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+            <h3 className="font-semibold text-blue-900 mb-3">Important Notes</h3>
+            <ul className="space-y-2 text-sm text-blue-800">
+              <li>• Bring your QR codes for exhibition entry</li>
+              <li>• Each stall requires a separate QR code</li>
+              <li>• QR codes are sent to your email after reservation</li>
+              <li>• Maximum 3 stalls per vendor</li>
+              <li>• Keep your contact information updated</li>
+            </ul>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

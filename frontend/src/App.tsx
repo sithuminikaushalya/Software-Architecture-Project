@@ -7,7 +7,6 @@ import ReserveStalls from './pages/vendor/ReserveStalls';
 import MyReservations from './pages/vendor/MyReservations';
 import VendorLayout from './layout/VendorLayout';
 import VendorProfile from './pages/vendor/Profile';
-import Dashboard from './pages/employee/Dashboard';
 import EmployeeProfile from './pages/employee/Profile';
 import VendorDashboard from './pages/vendor/Dashboard';
 

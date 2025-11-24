@@ -51,7 +51,7 @@ export default function VendorDashboard() {
         dimensions: '3x3m',
         location: 'BMICH Hall A'
       },
-      reservationDate: '2024-01-15T10:30:00Z',
+      reservationDate: '2026-01-15T10:30:00Z',
       status: 'ACTIVE',
       literaryGenres: ['Fiction', 'Children', 'Young Adult'],
       qrCodeUrl: ''
@@ -66,7 +66,7 @@ export default function VendorDashboard() {
         dimensions: '4x3m',
         location: 'BMICH Hall A'
       },
-      reservationDate: '2024-01-10T14:20:00Z',
+      reservationDate: '2026-01-10T14:20:00Z',
       status: 'ACTIVE',
       literaryGenres: [],
       qrCodeUrl: ''
@@ -127,7 +127,7 @@ export default function VendorDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-gradient-to-br from-[#1a2f8d] via-[#1f52b1] to-[#0d91c5] rounded-2xl shadow-xl p-8 text-white">
+      <div className="bg-gradient-to-br from-[#4598db] to-[#2ab7c9] rounded-2xl shadow-xl p-8 text-white">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-4 ml-2">
@@ -141,42 +141,42 @@ export default function VendorDashboard() {
             </div>
             
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
+              <div className="bg-white/30 p-4 border rounded-lg backdrop-blur-sm border-white/30">
                 <div className="flex items-center gap-3">
-                  <CheckCircle className="w-8 h-8 text-green-400" />
+                  <CheckCircle className="w-8 h-8 text-green-500" />
                   <div>
                     <p className="text-2xl font-bold">{stats.activeReservations}</p>
-                    <p className="text-blue-100 text-sm">Active Stalls</p>
+                    <p className="text-white-200 text-sm">Active Stalls</p>
                   </div>
                 </div>
               </div>
               
-              <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
+              <div className="bg-white/30 p-4 border rounded-lg backdrop-blur-sm border-white/30">
                 <div className="flex items-center gap-3">
                   <BookOpen className="w-8 h-8 text-yellow-400" />
                   <div>
                     <p className="text-2xl font-bold">{stats.completedSetups}</p>
-                    <p className="text-blue-100 text-sm">Ready Stalls</p>
+                    <p className="text-white-200 text-sm">Ready Stalls</p>
                   </div>
                 </div>
               </div>
               
-              <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
+              <div className="bg-white/30 p-4 border rounded-lg backdrop-blur-sm border-white/30">
                 <div className="flex items-center gap-3">
                   <AlertCircle className="w-8 h-8 text-orange-400" />
                   <div>
                     <p className="text-2xl font-bold">{stats.pendingActions}</p>
-                    <p className="text-blue-100 text-sm">Pending Setup</p>
+                    <p className="text-white-200 text-sm">Pending Setup</p>
                   </div>
                 </div>
               </div>
               
-              <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
+              <div className="bg-white/30 p-4 border rounded-lg backdrop-blur-sm border-white/30">
                 <div className="flex items-center gap-3">
-                  <MapPin className="w-8 h-8 text-cyan-400" />
+                  <MapPin className="w-8 h-8 text-violet-500 " />
                   <div>
                     <p className="text-2xl font-bold">{stats.availableStalls}</p>
-                    <p className="text-blue-100 text-sm">Available</p>
+                    <p className="text-white-200 text-sm">Available</p>
                   </div>
                 </div>
               </div>
@@ -267,7 +267,7 @@ export default function VendorDashboard() {
                   {recentReservations.map((reservation) => (
                     <div
                       key={reservation.id}
-                      className="border border-gray-200 rounded-lg p-6 hover:border-[#2ab7c9] transition-colors"
+                      className="border border-gray-200 rounded-lg p-6 hover:bg-slate-50 hover:border-[#2ab7c9] transition-colors"
                     >
                       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                         <div className="flex-1">
@@ -307,7 +307,7 @@ export default function VendorDashboard() {
                                 <BookOpen className="w-4 h-4" />
                                 Literary Genres
                                 {reservation.literaryGenres && reservation.literaryGenres.length > 0 && (
-                                  <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                                  <span className="bg-slate-100 text-slate-500 text-xs px-2 py-1 rounded-full">
                                     {reservation.literaryGenres.length} genres
                                   </span>
                                 )}
@@ -365,10 +365,10 @@ export default function VendorDashboard() {
         </div>
 
         <div className="space-y-6">
-          <div className="bg-gradient-to-br from-[#1e2875] to-[#3245a5] rounded-xl shadow-sm p-6 text-white">
+          <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-sm p-6 text-white">
             <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
               <Star className="w-5 h-5 text-yellow-400" />
-              Book Fair 2024
+              Book Fair 2026
             </h3>
             <div className="space-y-3 text-sm">
               <div className="flex items-center gap-3">
@@ -377,7 +377,7 @@ export default function VendorDashboard() {
               </div>
               <div className="flex items-center gap-3">
                 <Calendar className="w-4 h-4 text-[#4dd9e8]" />
-                <span>March 15-24, 2024</span>
+                <span>September 15-24, 2026</span>
               </div>
               <div className="flex items-center gap-3">
                 <Clock className="w-4 h-4 text-[#4dd9e8]" />
@@ -392,7 +392,7 @@ export default function VendorDashboard() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="bg-white/80 rounded-xl shadow-sm border border-gray-200 p-6">
             <h3 className="font-semibold text-gray-900 mb-4">Reservation Summary</h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
@@ -454,7 +454,7 @@ export default function VendorDashboard() {
                 />
                 <button
                   onClick={addGenre}
-                  className="px-4 py-2 bg-[#2ab7c9] text-white rounded-lg font-medium hover:bg-[#1e9fb0] transition-colors"
+                  className="px-4 py-2 bg-blue-50 text-blue-700 border-blue-200 border rounded-lg font-semibold hover:bg-blue-600 hover:text-white transition-all shadow-md"
                 >
                   Add
                 </button>
@@ -496,7 +496,7 @@ export default function VendorDashboard() {
               </button>
               <button
                 onClick={updateGenres}
-                className="flex-1 bg-gradient-to-r from-[#4dd9e8] to-[#2ab7c9] text-white py-2 rounded-lg font-medium hover:shadow-lg transition-all"
+                className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-2 rounded-lg font-medium hover:shadow-lg transition-all"
               >
                 Save Genres
               </button>
