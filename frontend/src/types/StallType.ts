@@ -5,7 +5,12 @@ export interface Stall {
   isAvailable: boolean;
   createdAt?: string;
   updatedAt?: string;
+  dimensions: string;
+  location: string;
+  positionX: number;
+  positionY: number;
 }
+
 
 export interface StallsResponse {
   success: boolean;
