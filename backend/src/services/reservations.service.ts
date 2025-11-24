@@ -16,7 +16,7 @@ export async function create(userId: number, stallId: number) {
     throw { status: 400, message: "You have reached the maximum of 3 active stalls" };
   }
 
-  // Transaction only for database operations
+  
   const reservation = await prisma.$transaction(async (tx) => {
     const updatedStall = await tx.stall.update({
       where: { id: stallId },
@@ -28,7 +28,7 @@ export async function create(userId: number, stallId: number) {
     return { created, updatedStall };
   });
 
-  // Generate QR and update reservation outside transaction
+
   const qrUrl = await generateAndUploadQr({
     reservationId: reservation.created.id,
     userId,
@@ -40,7 +40,7 @@ export async function create(userId: number, stallId: number) {
     data: { qrCodeUrl: qrUrl }
   });
 
-  // Send email outside transaction
+
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (user) {
     await sendReservationEmail({
