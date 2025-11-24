@@ -161,6 +161,15 @@ export const reservationsAPI = {
       handleError(e);
     }
   },
+
+  cancel: async (reservationId: number): Promise<{ success: boolean }> => {
+    try {
+      const res = await api.delete<{ success: boolean }>(`/reservations/${reservationId}`);
+      return res.data;
+    } catch (e) {
+      handleError(e);
+    }
+  },
 };
 
 // Users API
