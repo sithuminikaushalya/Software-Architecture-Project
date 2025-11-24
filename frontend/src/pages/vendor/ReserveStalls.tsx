@@ -1,60 +1,120 @@
 import { useState, useEffect } from 'react';
-import { ShoppingCart, Trash2, CheckCircle2, Square, Warehouse } from 'lucide-react';
+import { CheckCircle2, Warehouse, X } from 'lucide-react';
 import StallMap from '../../components/StallMap';
-import { stallsAPI } from '../../api/axios';
+import { stallsAPI, reservationsAPI, userAPI } from '../../api/axios';
 import type { Stall } from '../../types/StallType';
-
+import type { UserProfile } from '../../types/UserType';
 
 export default function ReserveStalls() {
   const [stalls, setStalls] = useState<Stall[]>([]);
-  const [selectedStalls, setSelectedStalls] = useState<Stall[]>([]);
+  const [selectedStall, setSelectedStall] = useState<Stall | null>(null);
   const [loading, setLoading] = useState(true);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [reserving, setReserving] = useState(false);
+  const [userReservations, setUserReservations] = useState<number>(0);
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+
+  // Calculate counts based on the stalls data
+  const availableCount = stalls.filter(stall => stall.isAvailable).length;
+  const reservedCount = stalls.length - availableCount;
 
   useEffect(() => {
-    loadStalls();
+    loadUserData();
   }, []);
 
+  // Load user data and then stalls/reservations
+  const loadUserData = async () => {
+    try {
+      const userProfile = await userAPI.getProfile();
+      setCurrentUser(userProfile);
+      
+      // Now load stalls and reservations
+      await Promise.all([
+        loadStalls(),
+        loadUserReservations(userProfile.id)
+      ]);
+    } catch (error) {
+      console.error('Failed to load user data:', error);
+      setLoading(false);
+    }
+  };
+
+  // Load ALL stalls (both available and reserved)
   const loadStalls = async () => {
     try {
-      const response = await stallsAPI.getAvailable();
+      const response = await stallsAPI.getAll();
       setStalls(response.stalls || []);
     } catch (error) {
       console.error('Failed to load stalls:', error);
       alert('Failed to load stalls. Please try again.');
+    }
+  };
+
+  // Load user's reservation count using the existing getForUser method
+  const loadUserReservations = async (userId: number) => {
+    try {
+      const response = await reservationsAPI.getForUser(userId);
+      setUserReservations(response.reservations?.length || 0);
+    } catch (error) {
+      console.error('Failed to load user reservations:', error);
+      // Don't show alert for this as it's secondary information
     } finally {
       setLoading(false);
     }
   };
 
+  const handleCloseModal = () => {
+    setShowConfirmation(false);
+    setSelectedStall(null);
+  };
+
   const handleStallClick = (stall: Stall) => {
     if (!stall.isAvailable) return;
-
-    const isSelected = selectedStalls.find(s => s.id === stall.id);
-    
-    if (isSelected) {
-      setSelectedStalls(selectedStalls.filter(s => s.id !== stall.id));
-    } else {
-      if (selectedStalls.length >= 3) {
-        alert('You can only reserve a maximum of 3 stalls per business.');
-        return;
-      }
-      setSelectedStalls([...selectedStalls, stall]);
-    }
-  };
-
-  const removeFromCart = (stallId: number) => {
-    setSelectedStalls(selectedStalls.filter(s => s.id !== stallId));
-  };
-
-  const handleConfirmReservation = () => {
-    if (selectedStalls.length === 0) {
-      alert('Please select at least one stall to proceed.');
-      return;
-    }
+    setSelectedStall(stall);
     setShowConfirmation(true);
   };
 
+  const handleConfirmReservation = async () => {
+    if (!selectedStall) return;
+
+    setReserving(true);
+    try {
+      const response = await reservationsAPI.create(selectedStall.id);
+      
+      if (response.success) {
+        alert(`Stall ${selectedStall.name} reserved successfully! Check your email for the QR code.`);
+        setShowConfirmation(false);
+        setSelectedStall(null);
+        await loadStalls();
+        
+        // Refresh user reservation count if we have the user ID
+        if (currentUser) {
+          await loadUserReservations(currentUser.id);
+        }
+      } else {
+        alert('Reservation failed. Please try again.');
+      }
+    } catch (error: any) {
+      console.error('Reservation failed:', error);
+      const errorMessage = error.message || 'Reservation failed. Please try again.';
+      
+      if (error.status === 400) {
+        alert(`Reservation failed: ${errorMessage}`);
+      } else if (error.status === 404) {
+        alert('User not found. Please log in again.');
+      } else {
+        alert(`Reservation completed but there was an issue with email/QR. Your stall is reserved.`);
+        await loadStalls();
+        if (currentUser) {
+          await loadUserReservations(currentUser.id);
+        }
+        setShowConfirmation(false);
+        setSelectedStall(null);
+      }
+    } finally {
+      setReserving(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -82,245 +142,185 @@ export default function ReserveStalls() {
         </div>
       </div>
 
+      {/* Updated Stats Section with vertical separators */}
       <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-        <h3 className='text-lg font-bold text-gray-900 mb-4 flex items-center gap-3'>
-          <Warehouse className="w-5 h-5 text-gray-500" />
-          Stall Type Legend
-        </h3>
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-          <div className="flex items-center gap-14 flex-wrap">
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-emerald-400 border-2 border-emerald-500 rounded-lg flex items-center justify-center">
-                <span className="text-sm font-bold text-white">S</span>
-              </div>
-              <span className="text-sm font-medium text-gray-700">Small Stall (2x2m) - LKR 20,000</span>
-            </div>
+        <div className="flex items-center justify-center gap-0">
+          {/* Total Stalls */}
+          <div className="flex flex-col items-center justify-center px-8 py-4">
+            <span className="text-2xl font-bold text-gray-900">{stalls.length}</span>
+            <span className="text-sm text-gray-600 font-medium">Total Stalls</span>
+          </div>
 
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-yellow-400 border-2 border-yellow-500 rounded-lg flex items-center justify-center">
-                <span className="text-sm font-bold text-white">M</span>
-              </div>
-              <span className="text-sm font-medium text-gray-700">Medium Stall (3x3m) - LKR 35,000</span>
-            </div>
+          {/* Vertical Separator */}
+          <div className="h-12 w-px bg-gray-300"></div>
 
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-red-400 border-2 border-red-500 rounded-lg flex items-center justify-center">
-                <span className="text-sm font-bold text-white">L</span>
-              </div>
-              <span className="text-sm font-medium text-gray-700">Large Stall (4x3m) - LKR 50,000</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-gray-300 border-2 border-gray-400 rounded-lg flex items-center justify-center opacity-60">
-                <span className="text-xs text-gray-600">✕</span>
-              </div>
-              <span className="text-sm font-medium text-gray-700">Reserved</span>
-            </div>
+          {/* Available Stalls */}
+          <div className="flex flex-col items-center justify-center px-8 py-4">
+            <span className="text-2xl font-bold text-green-600">{availableCount}</span>
+            <span className="text-sm text-gray-600 font-medium">Available</span>
+          </div>
+
+          {/* Vertical Separator */}
+          <div className="h-12 w-px bg-gray-300"></div>
+
+          {/* Reserved Stalls */}
+          <div className="flex flex-col items-center justify-center px-8 py-4">
+            <span className="text-2xl font-bold text-red-600">{reservedCount}</span>
+            <span className="text-sm text-gray-600 font-medium">Reserved</span>
+          </div>
+
+          {/* Vertical Separator */}
+          <div className="h-12 w-px bg-gray-300"></div>
+
+          {/* User's Reservations */}
+          <div className="flex flex-col items-center justify-center px-8 py-4">
+            <span className="text-2xl font-bold text-blue-600">{userReservations}</span>
+            <span className="text-sm text-gray-600 font-medium">Your Reservations</span>
+          </div>
+        </div>
+
+        {/* Progress indicator for user's reservations */}
+        <div className="mt-4">
+          <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+            <span>Your reservation progress</span>
+            <span>{userReservations}/3 stalls</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div 
+              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${(userReservations / 3) * 100}%` }}
+            ></div>
           </div>
         </div>
       </div>
 
-      <div className="lg:hidden bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-        <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-          <ShoppingCart className="w-5 h-5 text-gray-600" />
-          Selected Stalls ({selectedStalls.length}/3)
-        </h3>
-        
-        {selectedStalls.length === 0 ? (
-          <div className="text-center py-8">
-            <Square className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-            <p className="text-gray-500 text-sm">No stalls selected yet</p>
-          </div>
-        ) : (
-          <div className="space-y-2 mb-4">
-            {selectedStalls.map(stall => (
-              <div key={stall.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <div>
-                  <p className="font-semibold text-gray-900">Stall {stall.name}</p>
-                  <p className="text-xs text-gray-600">{stall.size} - {stall.dimensions}</p>
-                </div>
-                <button
-                  onClick={() => removeFromCart(stall.id)}
-                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {selectedStalls.length > 0 && (
-          <button
-            onClick={handleConfirmReservation}
-            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all shadow-md hover:shadow-lg"
-          >
-            Proceed to Reservation
-          </button>
-        )}
-      </div>
-
-      <div className="grid lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-3">
-          <StallMap 
-            stalls={stalls}
-            selectedStalls={selectedStalls}
-            onStallClick={handleStallClick}
-            showLegend={false}
-          />
-        </div>
-
-        <div className="hidden lg:block">
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 sticky top-4">
-            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <ShoppingCart className="w-5 h-5 text-gray-600" />
-              Selected Stalls
-            </h3>
-            
-            <div className="mb-4">
-              <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-                <p className="text-sm text-blue-800 font-medium text-center">
-                  {selectedStalls.length} / 3 Selected
-                </p>
-              </div>
-            </div>
-
-            {selectedStalls.length === 0 ? (
-              <div className="text-center py-8">
-                <Square className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                <p className="text-gray-500 text-sm">No stalls selected</p>
-              </div>
-            ) : (
-              <div className="space-y-2 mb-4 max-h-[400px] overflow-y-auto">
-                {selectedStalls.map(stall => {
-                  const getStallBgColor = () => {
-                    switch(stall.size) {
-                      case 'SMALL': return 'from-emerald-50 to-emerald-100 border-emerald-200';
-                      case 'MEDIUM': return 'from-yellow-50 to-yellow-100 border-yellow-200';
-                      case 'LARGE': return 'from-red-50 to-red-100 border-red-200';
-                      default: return 'from-gray-50 to-gray-100 border-gray-200';
-                    }
-                  };
-
-                  const getStallTextColor = () => {
-                    switch(stall.size) {
-                      case 'SMALL': return 'text-emerald-700';
-                      case 'MEDIUM': return 'text-yellow-700';
-                      case 'LARGE': return 'text-red-700';
-                      default: return 'text-gray-700';
-                    }
-                  };
-
-                  return (
-                    <div key={stall.id} className={`p-3 bg-gradient-to-br ${getStallBgColor()} rounded-lg border`}>
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <p className="font-bold text-gray-900 text-lg">Stall {stall.name}</p>
-                          <p className="text-xs text-gray-600 mt-1">
-                            <span className="font-semibold">{stall.size}</span>
-                          </p>
-                          <p className="text-xs text-gray-500">{stall.dimensions}</p>
-                        </div>
-                        <button
-                          onClick={() => removeFromCart(stall.id)}
-                          className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Remove"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                      <div className={`flex items-center gap-1 ${getStallTextColor()} text-xs`}>
-                        <CheckCircle2 className="w-3 h-3" />
-                        <span>Selected</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {selectedStalls.length > 0 && (
-              <>
-                <div className="border-t border-gray-200 pt-4 mb-4">
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between text-gray-600">
-                      <span>Total Stalls:</span>
-                      <span className="font-semibold">{selectedStalls.length}</span>
-                    </div>
-                    <div className="flex justify-between text-gray-600">
-                      <span>Small:</span>
-                      <span className="font-semibold">
-                        {selectedStalls.filter(s => s.size === 'SMALL').length}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-gray-600">
-                      <span>Medium:</span>
-                      <span className="font-semibold">
-                        {selectedStalls.filter(s => s.size === 'MEDIUM').length}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-gray-600">
-                      <span>Large:</span>
-                      <span className="font-semibold">
-                        {selectedStalls.filter(s => s.size === 'LARGE').length}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleConfirmReservation}
-                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
-                >
-                  <CheckCircle2 className="w-5 h-5" />
-                  Proceed to Reservation
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
+      {/* StallMap component */}
+      <StallMap 
+        stalls={stalls}
+        selectedStalls={selectedStall ? [selectedStall] : []}
+        onStallClick={handleStallClick}
+        showLegend={false}
+      />
       
-      {showConfirmation && (
+      {/* Confirmation Modal */}
+      {showConfirmation && selectedStall && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle2 className="w-8 h-8 text-blue-600" />
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative overflow-y-auto max-h-[96vh]">
+            
+            <button
+              onClick={handleCloseModal}
+              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Header */}
+            <div className="text-center mb-4">
+              <div className="w-10 h-10 md:w-14 md:h-14 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                <CheckCircle2 className="w-6 h-6 md:w-8 md:h-8 text-blue-600" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Confirm Reservation</h3>
-              <p className="text-gray-600">You are about to reserve the following stalls:</p>
+              <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-2 md:mb-1">Confirm Reservation</h3>
+              <p className="text-sm md:text-base text-gray-600">Review your stall selection before confirming</p>
             </div>
 
-            <div className="space-y-2 mb-6">
-              {selectedStalls.map(stall => (
-                <div key={stall.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
-                  <div>
-                    <p className="font-semibold text-gray-900">Stall {stall.name}</p>
-                    <p className="text-sm text-gray-600">{stall.size} ({stall.dimensions})</p>
-                  </div>
+            {/* Selected Stall Details */}
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl py-3 px-5 md:py-4 md:px-6 mb-4 border-2 border-blue-200">
+              <div className="flex items-start justify-between mb-2">
+                <div>
+                  <p className="text-sm text-blue-600 font-medium mb-2">Selected Stall</p>
+                  <h4 className="text-lg d:text-2xl font-bold text-gray-900">Stall {selectedStall.name}</h4>
                 </div>
-              ))}
+                <div className={`
+                  w-8 h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center border-2
+                  ${selectedStall.size === 'SMALL' ? 'bg-emerald-400 border-emerald-500' : ''}
+                  ${selectedStall.size === 'MEDIUM' ? 'bg-yellow-400 border-yellow-500' : ''}
+                  ${selectedStall.size === 'LARGE' ? 'bg-red-400 border-red-500' : ''}
+                `}>
+                  <span className="text-sm font-bold text-white">{selectedStall.size[0]}</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs md:text-sm text-gray-600">Size:</span>
+                  <span className="text-xs md:text-sm font-semibold text-gray-900">{selectedStall.size}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs md:text-sm text-gray-600">Dimensions:</span>
+                  <span className="text-xs md:text-sm font-semibold text-gray-900">{selectedStall.dimensions}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs md:text-sm text-gray-600">Location:</span>
+                  <span className="text-xs md:text-sm font-semibold text-gray-900">{selectedStall.location}</span>
+                </div>
+                <div className="flex items-center justify-between border-t border-blue-200 pt-2 mt-2">
+                  <span className="text-xs md:text-sm text-gray-600">Price:</span>
+                  <span className="text-base md:text-lg font-bold text-blue-600">
+                    {selectedStall.size === 'SMALL' ? 'LKR 20,000' : ''}
+                    {selectedStall.size === 'MEDIUM' ? 'LKR 35,000' : ''}
+                    {selectedStall.size === 'LARGE' ? 'LKR 50,000' : ''}
+                  </span>
+                </div>
+              </div>
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
-              <p className="text-sm text-blue-800">
-                <strong>Note:</strong> A confirmation email with QR code will be sent to your registered email address.
+            {/* User Reservation Status */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-blue-800 font-medium">Your current reservations:</span>
+                <span className="text-sm font-bold text-blue-800">{userReservations}/3</span>
+              </div>
+              <div className="w-full bg-blue-200 rounded-full h-2 mt-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${(userReservations / 3) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+
+            {/* Info Note */}
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-6">
+              <p className="text-xs md:text-sm text-amber-800">
+                <strong>Note:</strong> A confirmation email with QR code will be sent to your registered email address. Each stall reservation generates a unique QR code.
               </p>
             </div>
 
+            {/* Action Buttons */}
             <div className="flex gap-3">
               <button
-                onClick={() => setShowConfirmation(false)}
-                className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
+                onClick={handleCloseModal}
+                disabled={reserving}
+                className="flex-1 p-1 md:p-3 text-sm border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
-                className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all shadow-md"
+                onClick={handleConfirmReservation}
+                disabled={reserving || userReservations >= 3}
+                className="flex-1 p-1 px-2 md:p-3 text-sm bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all shadow-md flex items-center justify-center md:gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Confirm Booking
+                {reserving ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Reserving...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="md:w-5 md:h-5" />
+                    Confirm Booking
+                  </>
+                )}
               </button>
             </div>
+
+            {/* Max reservation warning */}
+            {userReservations >= 3 && (
+              <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-xs text-red-700 text-center">
+                  You have reached the maximum limit of 3 reservations.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}
