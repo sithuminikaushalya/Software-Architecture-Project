@@ -1,6 +1,7 @@
-# Software Architecture Project
+## Software Architecture Project
 
 This project is a Book Fair Stall Reservation System consisting of two main parts: the backend API and the frontend client application.
+
 ---
 
 ## System Architecture Models (C4)
