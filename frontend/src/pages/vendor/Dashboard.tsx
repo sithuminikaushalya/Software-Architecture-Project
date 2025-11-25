@@ -4,6 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { reservationsAPI, userAPI, stallsAPI } from '../../api/axios';
 import type { Reservation } from '../../types/ReservationType';
 import type { UserProfile } from '../../types/UserType';
+import { showToastError } from '../../utils/toast/errToast';
+import { showToastinfo } from '../../utils/toast/infoToast';
+import { showToastSuccess } from '../../utils/toast/successToast';
 
 interface DashboardStats {
   totalReservations: number;
@@ -46,6 +49,7 @@ export default function VendorDashboard() {
       ]);
 
       const reservationsData = (reservationsResponse.reservations || [])
+        .filter(reservation => reservation.status === 'ACTIVE')
         .slice()
         .sort(
           (a, b) =>
@@ -62,7 +66,8 @@ export default function VendorDashboard() {
       });
     } catch (err: any) {
       console.error('Failed to load vendor dashboard data:', err);
-      setError(err.message || 'Failed to load dashboard. Please try again.');
+      const errorMessage = err.message || 'Failed to load dashboard. Please try again.';
+      setError(errorMessage);
     } finally {
       if (!silent) {
         setLoading(false);
@@ -136,9 +141,11 @@ export default function VendorDashboard() {
       );
       setShowGenreModal(false);
       setSelectedReservation(null);
-    } catch (error) {
+      showToastSuccess('Literary genres updated successfully!');
+    } catch (error: any) {
       console.error('Failed to update genres:', error);
-      alert('Failed to update genres. Please try again.');
+      const errorMessage = error.message || 'Failed to update genres. Please try again.';
+      showToastError(errorMessage);
     } finally {
       setSavingGenres(false);
     }
@@ -187,8 +194,8 @@ export default function VendorDashboard() {
             <div className="flex items-center gap-3 mb-4 ml-2">
               
               <div>
-                <h1 className="text-3xl font-bold">Welcome to Vendor Dashboard</h1>
-                <p className="text-blue-100 text-lg">
+                <h1 className="text-2xl md:text-3xl font-bold">Welcome to Vendor Dashboard</h1>
+                <p className="text-blue-100 text-base md:text-lg">
                   {businessInfo} {contactName ? `- Welcome back, ${contactName}!` : ''}
                 </p>
               </div>
@@ -262,7 +269,7 @@ export default function VendorDashboard() {
         </div>
         
         <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {recentReservations.map((reservation) => (
               <div key={reservation.id} className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg">
                 <div className={`p-2 rounded-full ${
@@ -308,13 +315,13 @@ export default function VendorDashboard() {
           <div className="bg-white xl:h-full rounded-xl shadow-sm border border-gray-200">
             <div className="p-6 border-b border-gray-200 ">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <h2 className="md:text-lg font-semibold text-gray-900 flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-[#2ab7c9]" />
                   Your Stall Reservations
                 </h2>
                 <button
                   onClick={() => navigate('/vendor/reserve-stalls')}
-                  className="text-[#2ab7c9] hover:text-[#1e2875] font-medium text-sm flex items-center gap-1"
+                  className="text-[#2ab7c9] hover:text-[#1e2875] font-medium text-xs md:text-sm flex items-center gap-1"
                 >
                   Reserve New Stall
                 </button>
@@ -343,15 +350,15 @@ export default function VendorDashboard() {
                         <div className="flex-1">
                           <div className="flex items-start gap-4 mb-4">
                             <div className={`p-3 rounded-lg ${getSizeColor(reservation.stall?.size)}`}>
-                              <Warehouse className="w-6 h-6" />
+                              <Warehouse className="w-4 h-4 md:w-6 md:h-6" />
                             </div>
                             <div className="flex-1">
                               <div className="flex items-center gap-3 mb-2">
-                                <h3 className="text-xl font-bold text-gray-900">
+                                <h3 className="text-lg md:text-xl font-bold text-gray-900">
                                   Stall {reservation.stall?.name || reservation.stallId}
                                 </h3>
                               </div>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
+                              <div className="grid grid-cols-1 gap-2 text-xs md:text-sm text-gray-600">
                                 <div>
                                   <span className="font-medium">Location:</span> {reservation.stall?.location || 'TBA'}
                                 </div>
@@ -364,27 +371,25 @@ export default function VendorDashboard() {
                                     day: 'numeric'
                                   })}
                                 </div>
-                                <div>
-                                  <span className="font-medium">Stall ID:</span> {reservation.stallId}
-                                </div>
+                                
                               </div>
                             </div>
                           </div>
 
                           <div className="mt-4">
                             <div className="flex items-center mb-3 mr-10">
-                              <span className="text-sm font-medium text-gray-700 flex items-center gap-2 mr-5">
+                              <span className="text-xs md:text-sm font-medium text-gray-700 flex items-center gap-2 mr-5">
                                 <BookOpen className="w-4 h-4" />
                                 Literary Genres
                                 {reservation.literaryGenres && reservation.literaryGenres.length > 0 && (
-                                  <span className="bg-slate-100 text-slate-500 text-xs px-2 py-1 rounded-full">
+                                  <span className="bg-slate-100 text-center text-slate-500 text-xs px-2 py-1 rounded-full">
                                     {reservation.literaryGenres.length} genres
                                   </span>
                                 )}
                               </span>
                               <button
                                 onClick={() => openGenreModal(reservation)}
-                                className="text-[#2ab7c9] hover:text-[#1e2875] text-sm font-medium flex items-center gap-1"
+                                className="text-[#2ab7c9] hover:text-[#1e2875] text-xs md:text-sm font-medium flex items-center gap-1"
                               >
                                 <Edit3 className="w-4 h-4" />
                                 {reservation.literaryGenres && reservation.literaryGenres.length > 0 ? 'Edit Genres' : 'Add Genres'}
@@ -420,7 +425,7 @@ export default function VendorDashboard() {
                         <div className="flex">
                           <button
                             onClick={() => navigate('/vendor/my-reservations')}
-                            className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                            className="flex text-sm md:text-base items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
                           >
                             View Details
                           </button>
@@ -466,8 +471,8 @@ export default function VendorDashboard() {
             <h3 className="font-semibold text-gray-900 mb-4">Reservation Summary</h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Total Reserved</span>
-                <span className="font-semibold">{stats.totalReservations}/3</span>
+                <span className="text-sm text-gray-600">Active Reservations</span>
+                <span className="font-semibold">{stats.activeReservations}/3</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Ready for Exhibition</span>
@@ -490,7 +495,7 @@ export default function VendorDashboard() {
               Important Notes
             </h3>
             <ul className="text-sm text-orange-800 space-y-1">
-              <li>• Maximum 3 stalls per vendor</li>
+              <li>• Maximum 3 active stalls per vendor</li>
               <li>• Bring QR codes for entry</li>
               <li>• Setup must be completed 48h before event</li>
               <li>• Contact organizers for assistance</li>
@@ -501,11 +506,12 @@ export default function VendorDashboard() {
 
       {showGenreModal && selectedReservation && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            <h3 className="text-xl font-bold text-gray-900 mb-2">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 
+                max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">
               Literary Genres for Stall {selectedReservation.stall?.name || selectedReservation.stallId}
             </h3>
-            <p className="text-gray-600 text-sm mb-6">
+            <p className="text-gray-600 text-xs md:text-sm mb-6">
               Add the literary genres you'll be displaying at your stall. This helps visitors find your publications.
             </p>
             
@@ -520,13 +526,17 @@ export default function VendorDashboard() {
                   onChange={(e) => setNewGenre(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && addGenre()}
                   placeholder="e.g., Fiction, Science, Children"
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2ab7c9] focus:border-transparent outline-none"
+                  className="flex-1 px-3 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2ab7c9] focus:border-transparent outline-none"
                 />
                 <button
                   onClick={addGenre}
-                  className="px-4 py-2 bg-blue-50 text-blue-700 border-blue-200 border rounded-lg font-semibold hover:bg-blue-600 hover:text-white transition-all shadow-md"
+                  className="px-3 md:px-4 md:py-2 bg-blue-50 text-blue-700 border-blue-200 border rounded-full md:rounded-lg font-semibold 
+                            hover:bg-blue-600 hover:text-white transition-all shadow-md flex items-center justify-center"
                 >
-                  Add
+                  {/* Show + on mobile */}
+                  <span className="text-xl md:hidden">+</span>
+                  {/* Show text on tablet/desktop */}
+                  <span className="hidden md:inline">Add</span>
                 </button>
               </div>
             </div>
@@ -535,7 +545,8 @@ export default function VendorDashboard() {
               {genres.length === 0 ? (
                 <p className="text-gray-500 text-sm italic">No genres added yet</p>
               ) : (
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto p-1">
+
                   {genres.map((genre, index) => (
                     <span
                       key={index}
@@ -560,14 +571,14 @@ export default function VendorDashboard() {
                   setShowGenreModal(false);
                   setSelectedReservation(null);
                 }}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                className="flex-1 md:text-base text-sm px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={updateGenres}
                 disabled={savingGenres}
-                className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-2 rounded-lg font-medium hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-1 md:text-base text-sm px-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-2 rounded-lg font-medium hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {savingGenres ? (
                   <>

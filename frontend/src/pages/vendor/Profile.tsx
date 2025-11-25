@@ -1,3 +1,4 @@
+// frontend/src/pages/vendor/Profile.tsx
 import { useState, useEffect } from 'react';
 import { User, Mail, Phone, MapPin, Building2, Edit3, Save, X, Calendar, Shield } from 'lucide-react';
 import { userAPI } from '../../api/axios';
@@ -140,8 +141,8 @@ export default function VendorProfile() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
-        <div className="lg:col-span-3">
+      <div className="flex flex-col">
+        <div className="flex-1">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200">
             <div className="p-6 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
