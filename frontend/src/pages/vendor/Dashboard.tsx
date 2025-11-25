@@ -410,10 +410,10 @@ export default function VendorDashboard() {
                             ) : (
                               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                                 <div className="flex items-center gap-3">
-                                  <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0" />
+                                  <AlertCircle className="w-4 h-4 md:w-5 md:h-5 text-yellow-600 flex-shrink-0" />
                                   <div>
-                                    <p className="text-yellow-800 font-medium">Setup Required</p>
-                                    <p className="text-yellow-700 text-sm">
+                                    <p className="text-yellow-800 text-sm md:text-base font-medium">Setup Required</p>
+                                    <p className="text-yellow-700 text-xs md:text-sm">
                                       Add literary genres to complete your stall setup and enhance visitor experience
                                     </p>
                                   </div>
@@ -532,10 +532,8 @@ export default function VendorDashboard() {
                   onClick={addGenre}
                   className="px-3 md:px-4 md:py-2 bg-blue-50 text-blue-700 border-blue-200 border rounded-full md:rounded-lg font-semibold 
                             hover:bg-blue-600 hover:text-white transition-all shadow-md flex items-center justify-center"
-                >
-                  {/* Show + on mobile */}
+                >\
                   <span className="text-xl md:hidden">+</span>
-                  {/* Show text on tablet/desktop */}
                   <span className="hidden md:inline">Add</span>
                 </button>
               </div>
