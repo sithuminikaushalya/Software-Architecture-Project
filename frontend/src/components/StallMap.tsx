@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CheckCircle2, XCircle, MapPin, Grid3x3, List, Eye } from 'lucide-react';
+import { CheckCircle2, XCircle, MapPin, Grid3x3, List, Eye, Warehouse } from 'lucide-react';
 import type { Stall } from '../types/StallType';
 
 interface StallMapProps {
@@ -92,8 +92,6 @@ const handleStallClick = (stall: Stall) => {
     onStallClick?.(stall);
 };
 
-const availableCount = stalls.filter(s => s.isAvailable).length;
-const reservedCount = stalls.length - availableCount;
 
 const groupStallsByRow = () => {
     const rows = new Map<number, Stall[]>();
@@ -124,21 +122,54 @@ return (
     <div className={`space-y-4 ${className}`}>
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
             <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-4 flex-wrap">
-                <div className="bg-gray-50 px-4 py-2 rounded-lg border border-gray-200">
-                <p className="text-sm text-gray-600 font-medium">
-                    Total: <span className="font-bold text-gray-700">{stalls.length}</span>
-                </p>
+            
+            <div className='flex flex-col'>
+                <h3 className='text-lg font-bold text-gray-900 mb-4 flex items-center gap-3'>
+                <Warehouse className="w-5 h-5 text-gray-500" />
+                Stall Type Legend
+                </h3>
+                <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+                <div className="flex items-center gap-8 flex-wrap">
+                    <div className="flex items-center gap-2">
+                    <div className="w-10 h-10 bg-emerald-400 border-2 border-emerald-500 rounded-lg flex items-center justify-center">
+                        <span className="text-sm font-bold text-white">S</span>
+                    </div>
+                    <div>
+                        <p className="text-sm font-semibold text-gray-800">Small Stall</p>
+                        <p className="text-xs text-gray-600">2x2m - LKR 20,000</p>
+                    </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                    <div className="w-10 h-10 bg-yellow-400 border-2 border-yellow-500 rounded-lg flex items-center justify-center">
+                        <span className="text-sm font-bold text-white">M</span>
+                    </div>
+                    <div>
+                        <p className="text-sm font-semibold text-gray-800">Medium Stall</p>
+                        <p className="text-xs text-gray-600">3x3m - LKR 35,000</p>
+                    </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                    <div className="w-10 h-10 bg-red-400 border-2 border-red-500 rounded-lg flex items-center justify-center">
+                        <span className="text-sm font-bold text-white">L</span>
+                    </div>
+                    <div>
+                        <p className="text-sm font-semibold text-gray-800">Large Stall</p>
+                        <p className="text-xs text-gray-600">4x3m - LKR 50,000</p>
+                    </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                    <div className="w-10 h-10 bg-gray-300 border-2 border-gray-400 rounded-lg flex items-center justify-center opacity-60">
+                        <span className="text-xs text-gray-600">✕</span>
+                    </div>
+                    <div>
+                        <p className="text-sm font-semibold text-gray-800">Reserved</p>
+                        <p className="text-xs text-gray-600">Not Available</p>
+                    </div>
+                    </div>
                 </div>
-                <div className="bg-blue-50 px-4 py-2 rounded-lg border border-blue-200">
-                <p className="text-sm text-blue-600 font-medium">
-                    Available: <span className="font-bold text-blue-700">{availableCount}</span>
-                </p>
-                </div>
-                <div className="bg-red-50 px-4 py-2 rounded-lg border border-red-200">
-                <p className="text-sm text-red-600 font-medium">
-                    Reserved: <span className="font-bold text-red-700">{reservedCount}</span>
-                </p>
                 </div>
             </div>
 
@@ -251,7 +282,7 @@ return (
                             <span className="text-lg font-bold">{stall.name}</span>
                             <span className="text-xs font-semibold opacity-90">{stall.size[0]}</span>
                             {isSelected && <CheckCircle2 className="w-3 h-3 absolute top-0.5 right-0.5" />}
-                            {!stall.isAvailable && !isSelected && <XCircle className="w-3 h-3 opacity-70" />}
+                            
                         </button>
                         );
                     })}
@@ -305,28 +336,26 @@ return (
                         onClick={() => handleStallClick(stall)}
                         disabled={readOnly ? false : !stall.isAvailable}
                         className={`
-                        ${colors.bg} ${colors.border} ${colors.text}
-                        border-2 rounded-xl p-4 transition-all duration-200
-                        ${readOnly ? 'cursor-default' : stall.isAvailable ? 'cursor-pointer hover:scale-105 hover:shadow-lg' : 'cursor-not-allowed opacity-60'}
-                        ${isSelected ? 'ring-4 ring-sky-300 scale-105 shadow-xl' : ''}
+                            ${colors.bg} ${colors.border} ${colors.text}
+                            border-2 rounded-xl p-4 transition-all duration-200
+                            ${readOnly ? 'cursor-default' : stall.isAvailable ? 'cursor-pointer hover:scale-105 hover:shadow-lg' : 'cursor-not-allowed opacity-60'}
+                            ${isSelected ? 'ring-4 ring-sky-300 scale-105 shadow-xl' : ''}
                         `}
-                    >
-                        <div className="flex items-start justify-between mb-2">
-                        <div className="text-left">
+                        >
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="text-left">
                             <p className="text-2xl font-bold">{stall.name}</p>
                             <p className="text-sm opacity-90 font-semibold">{stall.size}</p>
+                            </div>
+                            <div className="text-left">
+                            <p className="text-xs opacity-90">{stall.dimensions}</p>
+                            <p className="text-xs opacity-75">{stall.location}</p>
+                            <p className="text-xs font-semibold mt-2">
+                                {stall.isAvailable ? 'Available' : 'Reserved'}
+                            </p>
+                            </div>
                         </div>
-                        {isSelected && <CheckCircle2 className="w-5 h-5" />}
-                        {!stall.isAvailable && !isSelected && <XCircle className="w-5 h-5 opacity-70" />}
-                        </div>
-                        <div className="text-left space-y-1">
-                        <p className="text-xs opacity-90">{stall.dimensions}</p>
-                        <p className="text-xs opacity-75">{stall.location}</p>
-                        <p className="text-xs font-semibold mt-2">
-                            {stall.isAvailable ? 'Available' : 'Reserved'}
-                        </p>
-                        </div>
-                    </button>
+                        </button>
                     );
                 })}
             </div>

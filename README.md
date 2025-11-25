@@ -1,8 +1,22 @@
-=======
-
-# Software Architecture Project
+## Software Architecture Project
 
 This project is a Book Fair Stall Reservation System consisting of two main parts: the backend API and the frontend client application.
+
+---
+
+## System Architecture Models (C4)
+
+### 1. Level 1 – System Context Diagram
+![System Context Diagram](./C4_models/Context_Diagram.png)
+
+### 2. Level 2 – Container Diagram
+![Container Diagram](./C4_models/Container_Diagram.png)
+
+### 3. Level 3 – Component Diagram
+![Component Diagram](./C4_models/Component_Diagram.png)
+
+### 4. Level 4 – Code/Entity Diagram
+![Code Diagram](./C4_models/Class_Diagram.png)
 
 ---
 
