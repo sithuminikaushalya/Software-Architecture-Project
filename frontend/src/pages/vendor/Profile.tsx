@@ -1,4 +1,3 @@
-// frontend/src/pages/vendor/Profile.tsx
 import { useState, useEffect } from 'react';
 import { User, Mail, Phone, MapPin, Building2, Edit3, Save, X, Calendar, Shield } from 'lucide-react';
 import { userAPI } from '../../api/axios';
