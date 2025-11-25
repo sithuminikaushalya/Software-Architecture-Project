@@ -1,10 +1,10 @@
-// pages/LoginPage.tsx - Updated with Admin Login
 import { useState } from 'react';
 import { Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../../api/axios';
 import type { ApiError } from '../../types/Error';
-
+import { showToastError } from '../../utils/toast/errToast';
+import { showToastSuccess } from '../../utils/toast/successToast';
 
 export default function LoginPage() {
     const navigate = useNavigate();
@@ -61,6 +61,8 @@ export default function LoginPage() {
             }
             
             setSuccess(true);
+            showToastSuccess(`Login successful! Welcome back!`);
+            
             setTimeout(() => {
                 if (userType === 'vendor') {
                     navigate('/vendor/dashboard');
@@ -73,8 +75,10 @@ export default function LoginPage() {
             
         } catch (err: any) {
             const apiError = err as ApiError;
-            setError(apiError.message || 'Login failed. Please try again.');
+            const errorMessage = apiError.message || 'Login failed. Please try again.';
+            setError(errorMessage);
             setSuccess(false);
+            showToastError(errorMessage);
         } finally {
             setIsLoading(false);
         }
