@@ -1,11 +1,11 @@
+import { AlertCircle, Loader2, Store } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Store, Loader2, AlertCircle } from 'lucide-react';
 import { stallsAPI } from '../../api/axios';
 
-import type { Stall } from '../../types/StallType';
 import StallMap from '../../components/StallMap';
 import EmpLayout from '../../layout/EmpLayout';
+import type { Stall } from '../../types/StallType';
 
 export default function EmployeeStall() {
   const navigate = useNavigate();
@@ -90,7 +90,7 @@ export default function EmployeeStall() {
             onStallClick={handleStallClick}
             readOnly={true}
             showLegend={true}
-            highlightReserved={true}
+            highlightReserved={false}
           />
         </div>
       </div>

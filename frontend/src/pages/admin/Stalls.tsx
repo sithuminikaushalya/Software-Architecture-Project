@@ -1,11 +1,11 @@
 
+import { AlertCircle, Loader2, Plus, Store } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Store, Plus, Loader2, AlertCircle } from 'lucide-react';
 import { stallsAPI } from '../../api/axios';
+import StallMap from '../../components/StallMap';
 import AdminLayout from '../../layout/AdminLayout';
 import type { Stall } from '../../types/StallType';
-import StallMap from '../../components/StallMap';
 
 export default function AdminStalls() {
   const navigate = useNavigate();
@@ -108,7 +108,7 @@ export default function AdminStalls() {
             onStallClick={handleStallClick}
             readOnly={true}
             showLegend={true}
-            highlightReserved={true}
+            highlightReserved={false}
           />
         </div>
       </div>
