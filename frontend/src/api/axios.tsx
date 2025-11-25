@@ -6,7 +6,7 @@ import type { Stall, StallResponse, StallsResponse } from '../types/StallType';
 import type { UserProfile, UserProfileResponse } from '../types/UserType';
 
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+const API_BASE_URL = "http://localhost:4000/api";
 
 const api = axios.create({
     baseURL: API_BASE_URL,
