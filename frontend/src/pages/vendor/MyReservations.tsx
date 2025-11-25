@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { MapPin, Calendar, Download, Trash2, QrCode, Building, Clock,CheckCircle,XCircle,AlertTriangle,Search,X} from 'lucide-react';
+import { MapPin, Calendar, Download, Trash2, QrCode, Building, Clock, CheckCircle, XCircle, AlertTriangle, Search, X } from 'lucide-react';
 import { reservationsAPI, userAPI } from '../../api/axios';
 import type { Reservation } from '../../types/ReservationType';
 import type { UserProfile } from '../../types/UserType';
+import { showToastError } from '../../utils/toast/errToast';
+import { showToastSuccess } from '../../utils/toast/successToast';
 
 export default function MyReservations() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
@@ -29,6 +31,7 @@ export default function MyReservations() {
       setReservations(response.reservations || []);
     } catch (error) {
       console.error('Failed to load reservations:', error);
+      showToastError('Failed to load your reservations. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -54,10 +57,13 @@ export default function MyReservations() {
         )
       );
 
+      showToastSuccess(`Reservation for Stall ${selectedReservation.stall?.name} has been cancelled successfully.`);
       setShowCancelModal(false);
       setSelectedReservation(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      const errorMessage = error.message || 'Failed to cancel reservation. Please try again.';
+      showToastError(errorMessage);
     } finally {
       setCancellingId(null);
     }
@@ -69,10 +75,16 @@ export default function MyReservations() {
   };
 
   const downloadQRCode = (qrCodeUrl: string, stallName: string) => {
-    const link = document.createElement('a');
-    link.href = qrCodeUrl;
-    link.download = `qr-code-${stallName}.png`;
-    link.click();
+    try {
+      const link = document.createElement('a');
+      link.href = qrCodeUrl;
+      link.download = `qr-code-${stallName}.png`;
+      link.click();
+      showToastSuccess('QR code downloaded successfully!');
+    } catch (error) {
+      console.error('Failed to download QR code:', error);
+      showToastError('Failed to download QR code. Please try again.');
+    }
   };
 
   const getStatusBadge = (status: string) => {
