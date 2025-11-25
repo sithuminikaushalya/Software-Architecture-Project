@@ -4,6 +4,7 @@ import type { RegisterResponse, RegisterVendorData } from '../types/RegisterType
 import type { ReservationResponse, ReservationsResponse } from '../types/ReservationType';
 import type { Stall, StallResponse, StallsResponse } from '../types/StallType';
 import type { UserProfile, UserProfileResponse } from '../types/UserType';
+import { showToastError } from '../utils/toast/errToast';
 
 
 const API_BASE_URL = "http://localhost:4000/api";
@@ -32,9 +33,13 @@ const api = axios.create({
     (error) => {
         if (error.response?.status === 401) {
         sessionStorage.removeItem('authToken');
+        sessionStorage.removeItem('userRole');
+        
         window.location.href = '/';
-        }
-        return Promise.reject(error);
+        const errorMessage = 'Session expired. Please login again.';
+        showToastError(errorMessage);
+      }
+      return Promise.reject(error);
     }
     );
 

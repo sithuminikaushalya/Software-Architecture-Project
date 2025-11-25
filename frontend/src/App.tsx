@@ -18,6 +18,7 @@ import AdminReservations from './pages/admin/Reservations';
 import AdminProfile from './pages/admin/Profile';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import ProtectedRoute from './components/ProtectedRoute';
 import EmployeeStall from './pages/employee/Stall';
 
 function App() {
@@ -27,26 +28,25 @@ function App() {
         <Route path="/" element={<Login/>} />
         <Route path="/register" element={<Register/>}/>
         
-        <Route path="/vendor/dashboard" element={<VendorLayout><VendorDashboard/></VendorLayout>}/>
-        <Route path="/vendor/reserve-stalls" element={<VendorLayout><ReserveStalls/></VendorLayout>}/>
-        <Route path="/vendor/my-reservations" element={<VendorLayout><MyReservations/></VendorLayout>}/>
-        <Route path="/vendor/profile" element={<VendorLayout><VendorProfile/></VendorLayout>}/>
+        <Route path="/vendor/dashboard" element={<ProtectedRoute requiredRole="VENDOR"><VendorLayout><VendorDashboard /></VendorLayout></ProtectedRoute>}/>
+        <Route path="/vendor/reserve-stalls" element={<ProtectedRoute requiredRole="VENDOR"><VendorLayout><ReserveStalls/></VendorLayout></ProtectedRoute>}/>
+        <Route path="/vendor/my-reservations" element={<ProtectedRoute requiredRole="VENDOR"><VendorLayout><MyReservations/></VendorLayout></ProtectedRoute>}/>
+        <Route path="/vendor/profile" element={<ProtectedRoute requiredRole="VENDOR"><VendorLayout><VendorProfile/></VendorLayout></ProtectedRoute>}/>
 
-        <Route path="/employee/dashboard" element={<EmployeeDashboard/>} />
-        <Route path="/employee/reservations" element={<EmployeeReservations/>} />
-        <Route path="/employee/profile" element={<EmployeeProfile/>} />
-        <Route path="/employee/stall" element={<EmployeeStall/>} />
 
+        <Route path="/employee/dashboard" element={<ProtectedRoute requiredRole="EMPLOYEE"><EmployeeDashboard /></ProtectedRoute>} />
+        <Route path="/employee/reservations" element={<ProtectedRoute requiredRole="EMPLOYEE"><EmployeeReservations/></ProtectedRoute>} />
+        <Route path="/employee/profile" element={<ProtectedRoute requiredRole="EMPLOYEE"><EmployeeProfile/></ProtectedRoute>} />
+        <Route path="/employee/stall" element={<ProtectedRoute requiredRole="EMPLOYEE"><EmployeeStall/></ProtectedRoute>} />
         
-        <Route path="/admin/dashboard" element={<AdminDashboard/>} />
-        <Route path="/admin/employees" element={<AdminEmployees/>} />
-        <Route path="/admin/employees/create" element={<CreateEmployee/>} />
-        <Route path="/admin/stalls" element={<AdminStalls/>} />
-        <Route path="/admin/stalls/create" element={<CreateStall/>} />
-        <Route path="/admin/reservations" element={<AdminReservations/>} />
-        <Route path="/admin/profile" element={<AdminProfile/>} />
+        <Route path="/admin/dashboard" element={<ProtectedRoute requiredRole="ADMIN"><AdminDashboard/></ProtectedRoute>} />
+        <Route path="/admin/employees" element={<ProtectedRoute requiredRole="ADMIN"><AdminEmployees/></ProtectedRoute>} />
+        <Route path="/admin/employees/create" element={<ProtectedRoute requiredRole="ADMIN"><CreateEmployee/></ProtectedRoute>} />
+        <Route path="/admin/stalls" element={<ProtectedRoute requiredRole="ADMIN"><AdminStalls/></ProtectedRoute>} />
+        <Route path="/admin/stalls/create" element={<ProtectedRoute requiredRole="ADMIN"><CreateStall/></ProtectedRoute>} />
+        <Route path="/admin/reservations" element={<ProtectedRoute requiredRole="ADMIN"><AdminReservations/></ProtectedRoute>} />
+        <Route path="/admin/profile" element={<ProtectedRoute requiredRole="ADMIN"><AdminProfile/></ProtectedRoute>} />
         
-       
       </Routes>
       <ToastContainer />
     </div>

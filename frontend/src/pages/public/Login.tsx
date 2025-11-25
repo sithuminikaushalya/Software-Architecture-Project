@@ -67,6 +67,7 @@ export default function LoginPage() {
             const apiError = err as ApiError;
             const errorMessage = apiError.message || 'Login failed. Please try again.';
             showToastError(errorMessage);
+            setError(errorMessage);
         } finally {
             setIsLoading(false);
         }
@@ -92,21 +93,7 @@ export default function LoginPage() {
                 <div className="p-6 bg-white shadow-xl rounded-xl md:rounded-2xl md:shadow-2xl md:p-8">
                     <h3 className="text-xl md:text-2xl font-bold text-[#1e2875] mb-4 md:mb-6 text-center">Welcome Back</h3>
 
-                    {/* Error Message */}
-                    {error && (
-                        <div className="flex items-start gap-2 p-3 mb-4 border border-red-200 rounded-lg md:p-4 bg-red-50 md:gap-3">
-                            <AlertCircle className="text-red-500 flex-shrink-0 mt-0.5" size={20} />
-                            <p className="text-sm font-medium text-red-700 md:text-base">{error}</p>
-                        </div>
-                    )}
-
-                    {/* Success Message */}
-                    {success && (
-                        <div className="flex items-start gap-2 p-3 mb-4 border border-green-200 rounded-lg md:p-4 bg-green-50 md:gap-3">
-                            <CheckCircle className="text-green-500 flex-shrink-0 mt-0.5" size={20} />
-                            <p className="text-sm font-medium text-green-700 md:text-base">Login successful! Redirecting...</p>
-                        </div>
-                    )}
+                    
 
                     {/* User Type Tabs */}
                     <div className="flex gap-1 p-1 mb-4 bg-gray-100 rounded-lg md:mb-6">
@@ -198,14 +185,24 @@ export default function LoginPage() {
                                 />
                                 <span className="ml-2 text-gray-600">Remember me</span>
                             </label>
-                            <button 
-                                type="button"
-                                className="text-[#2ab7c9] hover:text-[#1e2875] font-medium"
-                                disabled={isLoading}
-                            >
-                                Forgot password?
-                            </button>
+                            
                         </div>
+
+                        {/* Error Message */}
+                    {error && (
+                        <div className="flex items-start gap-2 p-3 mb-4 border border-red-200 rounded-lg md:p-4 bg-red-50 md:gap-3">
+                            <AlertCircle className="text-red-500 flex-shrink-0 mt-0.5" size={20} />
+                            <p className="text-xs font-medium text-red-700 md:text-sm">{error}</p>
+                        </div>
+                    )}
+
+                    {/* Success Message */}
+                    {success && (
+                        <div className="flex items-start gap-2 p-3 mb-4 border border-green-200 rounded-lg md:p-4 bg-green-50 md:gap-3">
+                            <CheckCircle className="text-green-500 flex-shrink-0 mt-0.5" size={20} />
+                            <p className="text-xs font-medium text-green-700 md:text-sm">Login successful! Redirecting...</p>
+                        </div>
+                    )}
 
                         <button
                             type="submit"
