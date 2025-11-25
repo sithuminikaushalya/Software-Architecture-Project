@@ -1,29 +1,51 @@
-import { useState, useEffect } from 'react';
-import { ShoppingCart, Trash2, CheckCircle2, Square, Warehouse } from 'lucide-react';
-import StallMap from '../../components/StallMap';
-import { stallsAPI } from '../../api/axios';
-import type { Stall } from '../../types/StallType';
-
+import { useEffect, useState } from "react";
+import { ShoppingCart, Trash2, CheckCircle2, Square, Warehouse, AlertCircle, RefreshCw } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import StallMap from "../../components/StallMap";
+import { reservationsAPI, stallsAPI } from "../../api/axios";
+import type { Stall } from "../../types/StallType";
 
 export default function ReserveStalls() {
+  const navigate = useNavigate();
   const [stalls, setStalls] = useState<Stall[]>([]);
   const [selectedStalls, setSelectedStalls] = useState<Stall[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [confirmationError, setConfirmationError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    loadStalls();
+    void loadStalls(true);
   }, []);
 
-  const loadStalls = async () => {
+  const loadStalls = async (showSpinner = false) => {
+    if (showSpinner) {
+      setLoading(true);
+    } else {
+      setRefreshing(true);
+    }
     try {
-      const response = await stallsAPI.getAvailable();
-      setStalls(response.stalls || []);
-    } catch (error) {
-      console.error('Failed to load stalls:', error);
-      alert('Failed to load stalls. Please try again.');
+      setFetchError(null);
+      const response = await stallsAPI.getAll();
+      const list = response.stalls || [];
+      setStalls(list);
+      setSelectedStalls((prev) =>
+        prev
+          .map((selected) => list.find((stall) => stall.id === selected.id && stall.isAvailable))
+          .filter((stall): stall is Stall => Boolean(stall))
+      );
+    } catch (error: any) {
+      console.error("Failed to load stalls:", error);
+      setFetchError(error?.message || "Failed to load stalls. Please try again.");
     } finally {
-      setLoading(false);
+      if (showSpinner) {
+        setLoading(false);
+      } else {
+        setRefreshing(false);
+      }
     }
   };
 
@@ -49,10 +71,31 @@ export default function ReserveStalls() {
 
   const handleConfirmReservation = () => {
     if (selectedStalls.length === 0) {
-      alert('Please select at least one stall to proceed.');
+      alert("Please select at least one stall to proceed.");
       return;
     }
+    setConfirmationError(null);
     setShowConfirmation(true);
+  };
+
+  const confirmReservation = async () => {
+    if (selectedStalls.length === 0) return;
+    setIsSubmitting(true);
+    setConfirmationError(null);
+    try {
+      await Promise.all(selectedStalls.map((stall) => reservationsAPI.create(stall.id)));
+      setShowConfirmation(false);
+      setSelectedStalls([]);
+      setSuccessMessage(
+        `Successfully reserved ${selectedStalls.length} stall${selectedStalls.length > 1 ? "s" : ""}.`
+      );
+      await loadStalls(false);
+    } catch (error: any) {
+      console.error("Failed to confirm reservation:", error);
+      setConfirmationError(error?.message || "Failed to confirm reservation. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
 
@@ -69,6 +112,42 @@ export default function ReserveStalls() {
 
   return (
     <div className="space-y-6">
+      {fetchError && (
+        <div className="flex items-center gap-3 p-4 border border-red-200 rounded-lg bg-red-50 text-red-800 text-sm">
+          <AlertCircle className="w-5 h-5 flex-shrink-0" />
+          <span>{fetchError}</span>
+          <button
+            onClick={() => void loadStalls(false)}
+            className="ml-auto inline-flex items-center gap-1 text-red-700 hover:text-red-900 font-semibold"
+          >
+            <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
+            Retry
+          </button>
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="flex items-center justify-between p-4 border border-green-200 rounded-lg bg-green-50 text-green-800 text-sm">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5" />
+            <span>{successMessage}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => {
+                setSuccessMessage(null);
+                navigate("/vendor/my-reservations");
+              }}
+              className="text-green-700 font-semibold hover:underline"
+            >
+              View reservations
+            </button>
+            <button onClick={() => setSuccessMessage(null)} className="text-green-700 hover:text-green-900">
+              ×
+            </button>
+          </div>
+        </div>
+      )}
       <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
         <div className="flex items-start justify-between flex-wrap gap-4">
           <div>
@@ -161,12 +240,18 @@ export default function ReserveStalls() {
 
       <div className="grid lg:grid-cols-4 gap-6">
         <div className="lg:col-span-3">
-          <StallMap 
+          <StallMap
             stalls={stalls}
             selectedStalls={selectedStalls}
             onStallClick={handleStallClick}
             showLegend={false}
           />
+          {refreshing && (
+            <div className="flex items-center gap-2 mt-3 text-sm text-gray-500">
+              <RefreshCw className="w-4 h-4 animate-spin" />
+              Updating stall availability...
+            </div>
+          )}
         </div>
 
         <div className="hidden lg:block">
@@ -220,13 +305,13 @@ export default function ReserveStalls() {
                           </p>
                           <p className="text-xs text-gray-500">{stall.dimensions}</p>
                         </div>
-                        <button
-                          onClick={() => removeFromCart(stall.id)}
-                          className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Remove"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                <button
+                  onClick={() => removeFromCart(stall.id)}
+                  className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  title="Remove"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
                       </div>
                       <div className={`flex items-center gap-1 ${getStallTextColor()} text-xs`}>
                         <CheckCircle2 className="w-3 h-3" />
@@ -292,11 +377,16 @@ export default function ReserveStalls() {
             </div>
 
             <div className="space-y-2 mb-6">
-              {selectedStalls.map(stall => (
-                <div key={stall.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
+              {selectedStalls.map((stall) => (
+                <div
+                  key={stall.id}
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
+                >
                   <div>
                     <p className="font-semibold text-gray-900">Stall {stall.name}</p>
-                    <p className="text-sm text-gray-600">{stall.size} ({stall.dimensions})</p>
+                    <p className="text-sm text-gray-600">
+                      {stall.size} ({stall.dimensions})
+                    </p>
                   </div>
                 </div>
               ))}
@@ -308,17 +398,33 @@ export default function ReserveStalls() {
               </p>
             </div>
 
+            {confirmationError && (
+              <div className="mb-4 p-3 border border-red-200 rounded-lg bg-red-50 text-sm text-red-700">
+                {confirmationError}
+              </div>
+            )}
+
             <div className="flex gap-3">
               <button
                 onClick={() => setShowConfirmation(false)}
-                className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
+                disabled={isSubmitting}
+                className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-colors disabled:opacity-60"
               >
                 Cancel
               </button>
               <button
-                className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all shadow-md"
+                onClick={confirmReservation}
+                disabled={isSubmitting}
+                className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all shadow-md disabled:opacity-60"
               >
-                Confirm Booking
+                {isSubmitting ? (
+                  <span className="inline-flex items-center gap-2">
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    Processing...
+                  </span>
+                ) : (
+                  "Confirm Booking"
+                )}
               </button>
             </div>
           </div>

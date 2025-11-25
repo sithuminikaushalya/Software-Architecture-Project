@@ -50,7 +50,14 @@ export default function LoginPage() {
         }
         setIsLoading(true);
         try {
-            await authAPI.login(formData.email.trim(), formData.password, userType);
+            const response = await authAPI.login(formData.email.trim(), formData.password, userType);
+            
+            // Log token to console
+            if (response.token) {
+                console.log('🔑 Login Token:', response.token);
+                console.log('👤 User Info:', response.user);
+            }
+            
             setSuccess(true);
             setTimeout(() => {
                 if (userType === 'vendor') {

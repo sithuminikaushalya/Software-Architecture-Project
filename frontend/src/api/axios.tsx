@@ -50,6 +50,22 @@ const api = axios.create({
     message: "Network error. Please check your connection.",
   } as ApiError;
 }
+
+const rememberUserContext = (user?: Partial<UserProfile>) => {
+  if (!user) return;
+  if (typeof user.id === "number") {
+    sessionStorage.setItem("userId", String(user.id));
+  }
+  if (user.role) {
+    sessionStorage.setItem("userRole", user.role);
+  }
+};
+
+const getCachedUserId = (): number | null => {
+  const cached = sessionStorage.getItem("userId");
+  return cached ? Number(cached) : null;
+};
+
 export const authAPI = {
     registerVendor: async (data: RegisterVendorData): Promise<RegisterResponse> => {
         try {
@@ -94,7 +110,53 @@ export const authAPI = {
         }
     },
 };
-// Stalls API
+
+export const userAPI = {
+  getProfile: async (): Promise<UserProfile> => {
+    try {
+      const response = await api.get<UserProfileResponse>("/users/profile");
+      rememberUserContext(response.data.user);
+      return response.data.user;
+    } catch (error) {
+      handleError(error);
+    }
+  },
+
+  updateProfile: async (data: Partial<UserProfile>): Promise<UserProfile> => {
+    try {
+      const response = await api.put<UserProfileResponse>("/users/profile", data);
+      rememberUserContext(response.data.user);
+      return response.data.user;
+    } catch (error) {
+      handleError(error);
+    }
+  },
+};
+
+export const usersAPI = {
+  getProfile: async (): Promise<UserProfileResponse> => {
+    try {
+      const res = await api.get<UserProfileResponse>("/users/profile");
+      rememberUserContext(res.data.user);
+      return res.data;
+    } catch (e) {
+      handleError(e);
+    }
+  },
+
+  updateProfile: async (
+    data: Partial<Pick<UserProfile, "businessName" | "contactPerson" | "phone" | "address">>
+  ): Promise<UserProfileResponse> => {
+    try {
+      const res = await api.put<UserProfileResponse>("/users/profile", data);
+      rememberUserContext(res.data.user);
+      return res.data;
+    } catch (e) {
+      handleError(e);
+    }
+  },
+};
+
 export const stallsAPI = {
   getAll: async (): Promise<StallsResponse> => {
     try {
@@ -133,7 +195,30 @@ export const stallsAPI = {
   },
 };
 
-// Reservations API
+async function ensureUserId(): Promise<number> {
+  const cached = getCachedUserId();
+  if (cached) {
+    return cached;
+  }
+  const profile = await userAPI.getProfile();
+  if (!profile) {
+    throw {
+      status: 401,
+      message: "Unable to determine current user",
+    } as ApiError;
+  }
+  return profile.id;
+}
+
+async function fetchReservationsForUser(userId: number): Promise<ReservationsResponse> {
+  try {
+    const res = await api.get<ReservationsResponse>(`/reservations/user/${userId}`);
+    return res.data;
+  } catch (e) {
+    handleError(e);
+  }
+}
+
 export const reservationsAPI = {
   create: async (stallId: number): Promise<ReservationResponse> => {
     try {
@@ -144,13 +229,11 @@ export const reservationsAPI = {
     }
   },
 
-  getForUser: async (userId: number): Promise<ReservationsResponse> => {
-    try {
-      const res = await api.get<ReservationsResponse>(`/reservations/user/${userId}`);
-      return res.data;
-    } catch (e) {
-      handleError(e);
-    }
+  getForUser: fetchReservationsForUser,
+
+  getMine: async (): Promise<ReservationsResponse> => {
+    const userId = await ensureUserId();
+    return fetchReservationsForUser(userId);
   },
 
   getAll: async (): Promise<ReservationsResponse> => {
@@ -161,69 +244,24 @@ export const reservationsAPI = {
       handleError(e);
     }
   },
-};
 
-// Users API
-export const usersAPI = {
-  getProfile: async (): Promise<UserProfileResponse> => {
+  cancel: async (reservationId: number): Promise<boolean> => {
     try {
-      const res = await api.get<UserProfileResponse>("/users/profile");
-      return res.data;
+      const res = await api.delete<{ success: boolean }>(`/reservations/${reservationId}`);
+      return res.data.success;
     } catch (e) {
       handleError(e);
     }
   },
 
-  updateProfile: async (
-    data: Partial<Pick<UserProfile, "businessName" | "contactPerson" | "phone" | "address">>
-  ): Promise<UserProfileResponse> => {
+  updateGenres: async (reservationId: number, genres: string[]): Promise<ReservationResponse> => {
     try {
-      const res = await api.put<UserProfileResponse>("/users/profile", data);
+      const res = await api.patch<ReservationResponse>(`/reservations/${reservationId}/genres`, { genres });
       return res.data;
     } catch (e) {
       handleError(e);
     }
   },
 };
-
-export const userAPI = {
-    getProfile: async (): Promise<UserProfile> => {
-        try {
-        const response = await api.get<UserProfileResponse>('/users/profile');
-        return response.data.user;
-        } catch (error: any) {
-        if (error.response) {
-            throw {
-            status: error.response.status,
-            message: error.response.data?.message || 'Failed to fetch profile',
-            } as ApiError;
-        }
-        throw {
-            status: 500,
-            message: 'Network error. Please check your connection.',
-        } as ApiError;
-        }
-    },
-
-    updateProfile: async (data: Partial<UserProfile>): Promise<UserProfile> => {
-        try {
-        const response = await api.put<UserProfileResponse>('/users/profile', data);
-        return response.data.user;
-        } catch (error: any) {
-        if (error.response) {
-            throw {
-            status: error.response.status,
-            message: error.response.data?.message || 'Failed to update profile',
-            } as ApiError;
-        }
-        throw {
-            status: 500,
-            message: 'Network error. Please check your connection.',
-        } as ApiError;
-        }
-    },
-};
-
-
 
 export default api;

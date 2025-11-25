@@ -1,83 +1,38 @@
 // frontend/src/pages/vendor/Profile.tsx
-import { useState, useEffect } from 'react';
-import { User, Mail, Phone, MapPin, Building2, QrCode, Download } from 'lucide-react';
-
-interface UserProfile {
-  id: number;
-  email: string;
-  businessName: string;
-  contactPerson: string;
-  phone: string;
-  address: string;
-  role: string;
-  createdAt: string;
-}
-
-interface Reservation {
-  id: number;
-  stallName: string;
-  qrCodeUrl?: string;
-}
+import { useState, useEffect } from "react";
+import { User, Mail, Phone, MapPin, Building2, QrCode, Download, AlertCircle, RefreshCw } from "lucide-react";
+import { userAPI, reservationsAPI } from "../../api/axios";
+import type { UserProfile } from "../../types/UserType";
+import type { Reservation } from "../../types/ReservationType";
 
 export default function VendorProfile() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [reloading, setReloading] = useState(false);
 
   useEffect(() => {
-    const fetchProfileData = async () => {
-      try {
-        const token = sessionStorage.getItem('authToken');
-        
-        // Fetch user profile
-        const profileResponse = await fetch('http://localhost:4000/api/auth/me', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        if (profileResponse.ok) {
-          const profileData = await profileResponse.json();
-          setUser(profileData.user);
-        }
-
-        // Fetch reservations for QR codes
-        const reservationsResponse = await fetch('http://localhost:4000/api/reservations/user/current', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        if (reservationsResponse.ok) {
-          const reservationsData = await reservationsResponse.json();
-          setReservations(reservationsData.reservations || []);
-        }
-      } catch (error) {
-        console.error('Error fetching profile data:', error);
-        // Mock data for demo
-        setUser({
-          id: 1,
-          email: 'publisher@example.com',
-          businessName: 'Galaxy Books',
-          contactPerson: 'Ishara',
-          phone: '077-0000000',
-          address: 'Colombo 7',
-          role: 'VENDOR',
-          createdAt: '2024-01-01T00:00:00Z'
-        });
-        setReservations([
-          { id: 1, stallName: 'Stall A', qrCodeUrl: '/qr-sample.png' },
-          { id: 2, stallName: 'Stall B', qrCodeUrl: '/qr-sample.png' }
-        ]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProfileData();
+    loadProfileData();
   }, []);
+
+  const loadProfileData = async () => {
+    setError(null);
+    setReloading(true);
+    try {
+      const [profile, reservationResponse] = await Promise.all([userAPI.getProfile(), reservationsAPI.getMine()]);
+      setUser(profile);
+      setReservations(reservationResponse.reservations || []);
+    } catch (err: any) {
+      console.error("Failed to load vendor profile:", err);
+      setError(err?.message || "Failed to load profile data. Please try again.");
+    } finally {
+      setLoading(false);
+      setReloading(false);
+    }
+  };
+
+  const qrReservations = reservations.filter((reservation) => Boolean(reservation.qrCodeUrl));
 
   if (loading) {
     return (
@@ -91,12 +46,32 @@ export default function VendorProfile() {
     return (
       <div className="text-center py-12">
         <p className="text-gray-500">Failed to load profile data</p>
+        <button
+          onClick={loadProfileData}
+          className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-[#4dd9e8] to-[#2ab7c9] text-white font-semibold hover:shadow-md"
+        >
+          <RefreshCw className="w-4 h-4" />
+          Retry
+        </button>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="flex items-center gap-3 p-4 border border-red-200 rounded-lg bg-red-50 text-sm text-red-800">
+          <AlertCircle className="w-5 h-5 flex-shrink-0" />
+          <span>{error}</span>
+          <button
+            onClick={loadProfileData}
+            className="ml-auto inline-flex items-center gap-1 text-red-700 hover:text-red-900 font-semibold"
+          >
+            <RefreshCw className={`w-4 h-4 ${reloading ? "animate-spin" : ""}`} />
+            Retry
+          </button>
+        </div>
+      )}
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -170,10 +145,11 @@ export default function VendorProfile() {
 
               <div className="pt-4 border-t border-gray-200">
                 <p className="text-sm text-gray-500">
-                  Member since {new Date(user.createdAt).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
+                  Member since{" "}
+                  {new Date(user.createdAt).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
                   })}
                 </p>
               </div>
@@ -191,41 +167,40 @@ export default function VendorProfile() {
               </h2>
             </div>
             <div className="p-6">
-              {reservations.filter(r => r.qrCodeUrl).length === 0 ? (
+              {qrReservations.length === 0 ? (
                 <div className="text-center py-8">
                   <QrCode className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                   <p className="text-gray-500 text-sm">No QR codes available yet</p>
-                  <p className="text-gray-400 text-xs mt-1">
-                    QR codes will be generated after stall reservations
-                  </p>
+                  <p className="text-gray-400 text-xs mt-1">QR codes will be generated after stall reservations</p>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {reservations
-                    .filter(reservation => reservation.qrCodeUrl)
-                    .map((reservation) => (
-                      <div
-                        key={reservation.id}
-                        className="border border-gray-200 rounded-lg p-4 text-center"
-                      >
-                        <div className="bg-gray-100 rounded-lg p-4 mb-3">
-                          <div className="w-32 h-32 mx-auto bg-white flex items-center justify-center rounded">
+                  {qrReservations.map((reservation) => (
+                    <div key={reservation.id} className="border border-gray-200 rounded-lg p-4 text-center">
+                      <div className="bg-gray-100 rounded-lg p-4 mb-3">
+                        <div className="w-32 h-32 mx-auto bg-white flex items-center justify-center rounded">
+                          {reservation.qrCodeUrl ? (
+                            <img
+                              src={reservation.qrCodeUrl}
+                              alt={`QR for ${reservation.stall?.name || `Stall ${reservation.stallId}`}`}
+                              className="object-contain w-full h-full"
+                            />
+                          ) : (
                             <span className="text-gray-400 text-xs">QR Code</span>
-                            {/* In real app: <img src={reservation.qrCodeUrl} alt={`QR for ${reservation.stallName}`} /> */}
-                          </div>
+                          )}
                         </div>
-                        <p className="font-medium text-gray-900 mb-2">
-                          {reservation.stallName}
-                        </p>
-                        <button
-                          onClick={() => window.open(reservation.qrCodeUrl, '_blank')}
-                          className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-[#4dd9e8] to-[#2ab7c9] text-white rounded-lg font-medium hover:shadow-lg transition-all text-sm"
-                        >
-                          <Download className="w-4 h-4" />
-                          Download QR
-                        </button>
                       </div>
-                    ))}
+                      <p className="font-medium text-gray-900 mb-2">{reservation.stall?.name || `Stall ${reservation.stallId}`}</p>
+                      <button
+                        onClick={() => reservation.qrCodeUrl && window.open(reservation.qrCodeUrl, "_blank")}
+                        disabled={!reservation.qrCodeUrl}
+                        className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-[#4dd9e8] to-[#2ab7c9] text-white rounded-lg font-medium hover:shadow-lg transition-all text-sm disabled:opacity-60"
+                      >
+                        <Download className="w-4 h-4" />
+                        Download QR
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
